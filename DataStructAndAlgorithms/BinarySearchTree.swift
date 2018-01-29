@@ -1,68 +1,109 @@
 import Foundation
 
-class GeneralBinaryTreeNote {
+class BinaryThreadTreeNote {
     var data: String
-    var leftChild: GeneralBinaryTreeNote!
-    var rightChild: GeneralBinaryTreeNote!
+    
+    var leftChild: BinaryThreadTreeNote!
+    var rightChild: BinaryThreadTreeNote!
+    
+    var leftTag: Bool = true
+    var rightTag: Bool = true
+    
     init(data: String) {
         self.data = data
     }
 }
 
-class GeneralBinaryTree {
-    var rootNote: GeneralBinaryTreeNote!
+class BinaryThreadTree {
     fileprivate var items: Array<String>
     fileprivate var index = -1
-
+    
+    var rootNote: BinaryThreadTreeNote!
+    fileprivate var preNote: BinaryThreadTreeNote?
+    fileprivate var headNote: BinaryThreadTreeNote?
+    
     init(items: Array<String>) {
         self.items = items
         self.rootNote = self.createTree()
+        
+        self.headNote = BinaryThreadTreeNote(data: "")
+        self.headNote?.leftChild = self.rootNote
+        self.headNote?.leftTag = true
+        
+        self.preNote = headNote
     }
     
-    fileprivate func createTree() -> GeneralBinaryTreeNote! {
-        self.index = self.index + 1
+    fileprivate func createTree() -> BinaryThreadTreeNote! {
+        self.index = self.index + 1     
         if index < self.items.count && index >= 0 {
             let item = self.items[index]
+            
             if item == "" {
                 return nil
-            } else {
-                let note = GeneralBinaryTreeNote(data: item)
+            }else {
+                let note = BinaryThreadTreeNote(data: item)
                 note.leftChild = createTree()
                 note.rightChild = createTree()
                 return note
             }
         }
-        return nil;
+        return nil
     }
     
+   
     func preOrderTraverse() {
-        self.preOrderTraverse(note: rootNote)
-        print("\n")
-    }
-    private func preOrderTraverse (note: GeneralBinaryTreeNote!) {
-        guard let note = note else { return }
-        print(note.data, separator: "", terminator: " ")
-        preOrderTraverse(note: note.leftChild)
-        preOrderTraverse(note: note.rightChild)
-    }
-    func inOrderTraverse() {
-        self.inOrderTraverse(note: rootNote)
-    }
-    private func inOrderTraverse (note: GeneralBinaryTreeNote!) {
-        guard let note = note else { return }
-        inOrderTraverse(note: note.leftChild)
-        print(note.data, separator: "", terminator: " ")
-        inOrderTraverse(note: note.rightChild)
-    }
-    func afterOrderTraverse() {
-        self.afterOrderTraverse(note: rootNote)
-        print("\n")
+        self.preOrderTraverse(rootNote)
     }
     
-    private func afterOrderTraverse (note: GeneralBinaryTreeNote!) {
-        guard let note = note else { return }
-        afterOrderTraverse(note: note.leftChild)
-        afterOrderTraverse(note: note.rightChild)
+    fileprivate func preOrderTraverse (_ note: BinaryThreadTreeNote!) {
+        guard let note = note else {
+            return
+        }
         print(note.data, separator: "", terminator: " ")
+        if note.leftTag {
+            preOrderTraverse(note.leftChild)
+        }
+        if note.rightTag {
+            preOrderTraverse(note.rightChild)
+        }
     }
+    
+    func inThread() {
+        self.inThreading(note: self.rootNote)
+    }
+    
+    private func inThreading(note: BinaryThreadTreeNote?) {
+        if note != nil {
+            inThreading(note: note?.leftChild)
+            if note?.leftChild == nil {
+                note?.leftTag = false
+                note?.leftChild = preNote
+            }
+          
+            if preNote?.rightChild == nil {
+                preNote?.rightTag = false
+                preNote?.rightChild = note
+            }
+            
+            preNote = note
+            inThreading(note: note?.rightChild)
+        }
+    }
+    
+    func displayThreadTree() {
+ 
+        var cursor = self.headNote?.rightChild
+        while cursor != nil {
+            print((cursor?.data)!, separator: "", terminator: " -> ")
+            cursor = cursor?.rightChild
+        }
+        print("end\n")
+    }
+    
 }
+
+let items:Array<String> = ["A","B","D","","","E","","","C"]
+let binaryTree:BinaryThreadTree = BinaryThreadTree(items: items)
+binaryTree.preOrderTraverse()
+binaryTree.inThread()
+binaryTree.displayThreadTree()
