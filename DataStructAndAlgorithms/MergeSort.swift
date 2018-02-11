@@ -1,37 +1,40 @@
 import Foundation
 extension Array where Element: Comparable {
-    private mutating func merge(left: Int, middle: Int, right: Int) {
-        var tempArray: [Element] = []
-        var l = left, m = middle
-        while l != middle && m != right {
-            if self[m] < self[l] {
-                tempArray.append(self[m])
-                m += 1
+    mutating func mergeSortInPlace() {
+        var tempArray:[Element] = []
+        tempArray.reserveCapacity(count)
+        
+        func merge(left: Int, middle: Int, endIndex: Int) {
+            tempArray.removeAll(keepingCapacity: true)
+            var l = left, m = middle
+            while l != middle && m != endIndex {
+                if  self[l] > self[m]  {
+                    tempArray.append(self[m])
+                    m += 1
+                }
+                else {
+                    tempArray.append(self[l])
+                    l += 1
+                }
             }
-            else {
-                tempArray.append(self[l])
-                l += 1
-            }
+            tempArray.append(contentsOf: self[l..<middle])
+            tempArray.append(contentsOf: self[m..<endIndex])
+            print(tempArray)
+            replaceSubrange(left..<endIndex, with: tempArray)
         }
-        tempArray.append(contentsOf: self[l..<middle])
-        tempArray.append(contentsOf: self[m..<right])
-        replaceSubrange(left..<right, with: tempArray)
-    }
-    mutating func mergeSortInPlaceInefficient() {
+        
         let arrayCount = count
         var size = 1
         while size < arrayCount {
             for strideLeft in stride(from: 0, to: arrayCount - size, by: size*2) {
-                merge(left: strideLeft, middle: (strideLeft+size), right: Swift.min(strideLeft+size*2,arrayCount))
+                merge(left: strideLeft, middle: (strideLeft+size), endIndex: Swift.min(strideLeft+size*2,arrayCount))
             }
             size *= 2
         }
     }
 }
-var array = [3,1,2,5,6]
-array.mergeSortInPlaceInefficient()
-
-Swift.min(10, 100)
+var array = [1,3,2,4,5]
+array.mergeSortInPlace()
 /**
  [0][1][2][3][4]
  3  1  2  5  6
