@@ -1,109 +1,68 @@
-import Foundation
-
-class BinaryThreadTreeNote {
-    var data: String
-    
-    var leftChild: BinaryThreadTreeNote!
-    var rightChild: BinaryThreadTreeNote!
-    
-    var leftTag: Bool = true
-    var rightTag: Bool = true
-    
-    init(data: String) {
-        self.data = data
+indirect enum BinarySearchTree<Element: Comparable> {
+    case leaf
+    case node(BinarySearchTree<Element>, Element, BinarySearchTree<Element>)
+}
+extension BinarySearchTree {
+    init() {
+        self = .leaf
+    }
+    init(_ value: Element) {
+        self = .node(.leaf,value,.leaf)
     }
 }
-
-class BinaryThreadTree {
-    fileprivate var items: Array<String>
-    fileprivate var index = -1
-    
-    var rootNote: BinaryThreadTreeNote!
-    fileprivate var preNote: BinaryThreadTreeNote?
-    fileprivate var headNote: BinaryThreadTreeNote?
-    
-    init(items: Array<String>) {
-        self.items = items
-        self.rootNote = self.createTree()
-        
-        self.headNote = BinaryThreadTreeNote(data: "")
-        self.headNote?.leftChild = self.rootNote
-        self.headNote?.leftTag = true
-        
-        self.preNote = headNote
-    }
-    
-    fileprivate func createTree() -> BinaryThreadTreeNote! {
-        self.index = self.index + 1     
-        if index < self.items.count && index >= 0 {
-            let item = self.items[index]
-            
-            if item == "" {
-                return nil
-            }else {
-                let note = BinaryThreadTreeNote(data: item)
-                note.leftChild = createTree()
-                note.rightChild = createTree()
-                return note
-            }
-        }
-        return nil
-    }
-    
-   
-    func preOrderTraverse() {
-        self.preOrderTraverse(rootNote)
-    }
-    
-    fileprivate func preOrderTraverse (_ note: BinaryThreadTreeNote!) {
-        guard let note = note else {
-            return
-        }
-        print(note.data, separator: "", terminator: " ")
-        if note.leftTag {
-            preOrderTraverse(note.leftChild)
-        }
-        if note.rightTag {
-            preOrderTraverse(note.rightChild)
+extension BinarySearchTree{
+    func reduce<A>(leaf leafF: A, node nodeF: @escaping(A, Element, A)-> A)  -> A {
+        switch self {
+        case .leaf:
+            return leafF
+        case let .node(left, x, right):
+            return nodeF(left.reduce(leaf: leafF, node: nodeF),
+                         x,
+                         right.reduce(leaf: leafF, node: nodeF))
         }
     }
-    
-    func inThread() {
-        self.inThreading(note: self.rootNote)
-    }
-    
-    private func inThreading(note: BinaryThreadTreeNote?) {
-        if note != nil {
-            inThreading(note: note?.leftChild)
-            if note?.leftChild == nil {
-                note?.leftTag = false
-                note?.leftChild = preNote
-            }
-          
-            if preNote?.rightChild == nil {
-                preNote?.rightTag = false
-                preNote?.rightChild = note
-            }
-            
-            preNote = note
-            inThreading(note: note?.rightChild)
-        }
-    }
-    
-    func displayThreadTree() {
- 
-        var cursor = self.headNote?.rightChild
-        while cursor != nil {
-            print((cursor?.data)!, separator: "", terminator: " -> ")
-            cursor = cursor?.rightChild
-        }
-        print("end\n")
-    }
-    
 }
-
-let items:Array<String> = ["A","B","D","","","E","","","C"]
-let binaryTree:BinaryThreadTree = BinaryThreadTree(items: items)
-binaryTree.preOrderTraverse()
-binaryTree.inThread()
-binaryTree.displayThreadTree()
+extension BinarySearchTree {
+    var elements: [Element] {
+        return reduce(leaf: []) { $0 + [$1] + $2 }
+    }
+    var count: Int {
+        return reduce(leaf: 0) { 1 + $0 + $2 }
+    }
+}
+extension BinarySearchTree {
+    var isEmpty: Bool {
+        if case .leaf = self {
+            return true
+        }
+        return false
+    }
+}
+extension BinarySearchTree {
+    func contains(_ x: Element) -> Bool {
+        switch self {
+        case .leaf:
+            return false
+        case let .node(_, y, _) where x == y:
+            return true
+        case let .node(left, y, _) where x < y:
+            return left.contains(x)
+        case let .node(_, y, right) where x > y:
+            return right.contains(x)
+        default:
+            fatalError("The impossible occur red")
+        }
+    }
+}
+extension BinarySearchTree {
+    mutating func insert(_ x: Element) {
+        switch self {
+        case .leaf:
+            self = BinarySearchTree(x)
+        case .node(var left, let y, var right):
+            if x < y { left.insert(x) }
+            if x > y { right.insert(x) }
+            self = .node(left, y, right)
+        }
+    }
+}
