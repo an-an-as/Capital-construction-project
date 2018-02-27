@@ -1,37 +1,35 @@
-indirect enum BinarySearchTree<Element: Comparable> {
+indirect enum BinarySearchTree<Element:Comparable> {
     case leaf
-    case node(BinarySearchTree<Element>, Element, BinarySearchTree<Element>)
+    case node(BinarySearchTree<Element>,Element,BinarySearchTree<Element>)
 }
 extension BinarySearchTree {
-    init() {
+    init()  {
         self = .leaf
     }
-    init(_ value: Element) {
+    init(_ value:Element) {
         self = .node(.leaf,value,.leaf)
     }
 }
-extension BinarySearchTree{
-    func reduce<A>(leaf leafF: A, node nodeF: @escaping(A, Element, A)-> A)  -> A {
+extension BinarySearchTree {
+    func reduce<A>(leaf LEAF:A,node NODE:(A,Element,A) -> A) -> A {
         switch self {
         case .leaf:
-            return leafF
-        case let .node(left, x, right):
-            return nodeF(left.reduce(leaf: leafF, node: nodeF),
-                         x,
-                         right.reduce(leaf: leafF, node: nodeF))
+            return LEAF
+        case let .node(left,value,right):
+            return NODE(left.reduce(leaf: LEAF, node: NODE),value,right.reduce(leaf: LEAF, node: NODE))
         }
     }
 }
 extension BinarySearchTree {
     var elements: [Element] {
-        return reduce(leaf: []) { $0 + [$1] + $2 }
+        return reduce(leaf: []) {$0 + [$1] + $2}
     }
     var count: Int {
         return reduce(leaf: 0) { 1 + $0 + $2 }
     }
 }
 extension BinarySearchTree {
-    var isEmpty: Bool {
+    var isEmpty:Bool {
         if case .leaf = self {
             return true
         }
@@ -39,30 +37,30 @@ extension BinarySearchTree {
     }
 }
 extension BinarySearchTree {
-    func contains(_ x: Element) -> Bool {
+    func contains(_ value:Element) -> Bool {
         switch self {
         case .leaf:
             return false
-        case let .node(_, y, _) where x == y:
+        case .node(_,let current,_) where value == current:
             return true
-        case let .node(left, y, _) where x < y:
-            return left.contains(x)
-        case let .node(_, y, right) where x > y:
-            return right.contains(x)
+        case let .node(left,current,_) where value < current:
+            return left.contains(value)
+        case let .node(_,current,right) where value > current:
+            return right.contains(value)
         default:
-            fatalError("The impossible occur red")
+            fatalError()
         }
     }
 }
 extension BinarySearchTree {
-    mutating func insert(_ x: Element) {
+    mutating func insert(_ value:Element) {
         switch self {
         case .leaf:
-            self = BinarySearchTree(x)
-        case .node(var left, let y, var right):
-            if x < y { left.insert(x) }
-            if x > y { right.insert(x) }
-            self = .node(left, y, right)
+            self = BinarySearchTree(value)
+        case .node(var left, let current, var right):
+            if value < current { left.insert(value) }
+            if value > current { right.insert(value)}
+            self = .node(left,current,right)
         }
     }
 }
