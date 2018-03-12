@@ -21,6 +21,13 @@ extension String {
         return lines.joined(separator: "\n")
     }
 }
+extension String {
+    func words(with charset: CharacterSet = .alphanumerics) -> [Substring] {
+        return self.unicodeScalars.split {
+            !charset.contains($0)
+            }.map(Substring.init)
+    }
+}
 extension Collection where Element: Equatable {
     func split<S: Sequence>(separators: S) -> [SubSequence] where Element == S.Element {
         return split { separators.contains($0) }
