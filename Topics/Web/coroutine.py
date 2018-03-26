@@ -30,3 +30,4 @@ def post(path):
         wrapper.__route__ = path
         return wrapper
     return decorator
+
