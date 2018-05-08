@@ -151,6 +151,7 @@ nums.contains { $0 % 2 == 0 } // true
 let fibs = [0, 1, 1, 2, 3, 5]
 fibs.reduce(0, +) // 12
 fibs.reduce("") { str, num in str + "\(num), " } // 0, 1, 1, 2, 3, 5,
+fibs.reduce("") { $0 + ",\($1)" }.dropFirst()
 extension Array {
     func reduce<Result>(_ initialResult: Result,
                         _ nextPartialResult: (Result, Element) -> Result) -> Result {
@@ -199,7 +200,44 @@ func myFlatMap<T>(_ transform:(Element)->[T])->[T]{
 }
 
 // forEach
-// where return 
+// where return
+
+
+
+// elementsEqual
+var nums = [0, 1, 1, 2, 3, 5]
+let flag = nums.elementsEqual([0,1,1,2,3,5], by: { $0 == $1 })
+print(flag) // true
+
+
+
+// starts
+let flag2 = nums.starts(with: [0,1], by: { $0 == $1 })
+print(flag2)//true
+
+
+
+// sort
+nums.sort()
+nums.sort(by: >)
+
+
+
+// partition
+var nums = [3,2,5,0,1,4]
+let partition = nums.partition(by: { $0 < 3 })
+nums[0..<partition] // [3, 4, 5]
+nums[partition..<nums.endIndex] // [0, 1, 2]
+//重排数组,根据条件的分界点,前半部分的元素都不满足指定条,后半部分都满足指定条件
+
+
+
+// joined
+let cast = ["Vivien", "Marlon", "Kim", "Karl"]
+let list = cast.joined(separator: "-")
+// Vivien-Marlon-Kim-Karl
+
+
 
 //custom
 //从后遍历符合条件的元素
@@ -216,7 +254,7 @@ extension Sequence {
 let match = names.last { $0.hasSuffix("a") }
 match // Optional("Elena")”
 
-guard let match = someSequence.last(where: { $0.passesTest() }) else { return }”
+guard let match = someSequence.last(where: { $0.passesTest() }) else { return }
 
 
 
@@ -231,7 +269,6 @@ extension Array {
         }
     }
 }
-
 [1,2,3,4].accumulate(0, +) // [1, 3, 6, 10]
 
 
@@ -245,3 +282,20 @@ extension Sequence {
 let nums = [1,2,3,4,5,6,7,8,9,10]
 let evenNums = nums.filter { $0 % 2 == 0 } // [2, 4, 6, 8, 10]
 evenNums.all { $0 % 2 == 0 } // true
+
+
+// 返回不满足条件的数组
+func reject(comlection: (Element) -> Bool) -> [Element] {
+    return filter { !comlection($0) }  // 不满足条件即false 取反变true符合filter
+}
+
+
+
+
+
+
+
+
+
+
+
