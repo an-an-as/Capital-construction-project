@@ -1,11 +1,11 @@
-/* Creating an Empty Array */
+/************************** Creating an Empty Array **************************/
 var array1 = Array<Int>()
 var array2: [Int] = []
 var someInts = [Int]()
 print("someInts is of type [Int] with \(someInts.count) items.")
 // Prints "someInts is of type [Int] with 0 items."
 someInts.append(3)
-someInts = []
+someInts = [] // 清空 或 removeAll()
 // someInts is now an empty array, but is still of type [Int]
 
 
@@ -24,14 +24,17 @@ var sixDoubles = threeDoubles + anotherThreeDoubles
 
 
 /*Creating an Array with an Array Literal*/
+// 数组的元素类型必须是统一
 var shoppingList: [String] = ["Eggs", "Milk"]
 var shoppingList = ["Eggs", "Milk"] //type inference
+let arr:Any = [1,2,"a","b"]
+
 
 
 
 /*Accessing and Modifying an Array*/
+shoppingList.capacity
 print("The shopping list contains \(shoppingList.count) items.")
-
 if shoppingList.isEmpty {
     print("The shopping list is empty.")
 } else {
@@ -40,23 +43,35 @@ if shoppingList.isEmpty {
 
 shoppingList += ["Baking Powder"]
 shoppingList += ["Chocolate Spread", "Cheese", "Butter"]
+shoppingList + ["Other"]
+
 
 var firstItem = shoppingList[0]
 shoppingList[0] = "Six eggs"
 shoppingList[4...6] = ["Bananas", "Apples"]
 Array(shoppingList[4...6])
-//使用range operator得到的，并不是一个Array，而是一个ArraySlice,简单来说，就是Array某一段内容的view，它不真正保存数组的内容，只保存这个view引用的数组的范围
+//使用range operator得到的，并不是一个Array，而是一个ArraySlices视图，它不真正保存数组的内容，只保存这个视图引用的数组的范围
+
 shoppingList.insert("Maple Syrup", at: 0)
+
 let mapleSyrup = remove(at: 0)
 let apples = shoppingList.removeLast()
+// removeFirst()  removeAll()  removeAll(keepCapacity: true) 保持数组容量
 
-shoppingList.index{ $0 == "Cheese" }//index会返回一个Optional<Int>
+shoppingList.index{ $0 == "Cheese" }
+//index会返回一个Optional<Int>
 shoppingList.index(of:"CheeCheese")
 
-shoppingList.first//更安全的操作
+
+shoppingList.first
 shoppingList.last
-type(of: shoppingList.first) // Optional<Int>.Type
-shoppingList.popLast()       // 如果数组为空，会返回nil
+type(of: shoppingList.first)
+// 操作更安全 Optional<Int>.Type
+shoppingList.popLast()
+// 如果数组为空，会返回nil
+
+
+
 
 
 /*Iterating Over an Array*/
@@ -232,10 +247,13 @@ nums[partition..<nums.endIndex] // [0, 1, 2]
 
 
 
+
 // joined
+// Descript:func joined(separator: String = default) -> String   an array of strings can be joined to a single
+// 字符串和数组
 let cast = ["Vivien", "Marlon", "Kim", "Karl"]
 let list = cast.joined(separator: "-")
-// Vivien-Marlon-Kim-Karl
+let arr = list.split(separator: "-")
 
 
 
