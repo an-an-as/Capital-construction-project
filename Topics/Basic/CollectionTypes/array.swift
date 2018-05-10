@@ -256,6 +256,13 @@ let list = cast.joined(separator: "-")
 let arr = list.split(separator: "-")
 
 
+// drop
+var arr = [1,3,4]
+arr.dropFirst
+arr.dropLast
+let newArr = arr.drop(while: { $0 == 1 })
+/// Once the predicate returns false it will not be called again 判断开头是否是1 true 返回剩余部分 false 返回原数组 
+
 
 //custom
 //从后遍历符合条件的元素
