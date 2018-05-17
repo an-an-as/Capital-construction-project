@@ -4,6 +4,7 @@ var array2: [Int] = []
 var someInts = [Int]()
 print("someInts is of type [Int] with \(someInts.count) items.")
 /// Prints "someInts is of type [Int] with 0 items."
+someInts.reserveCapacity(10)
 someInts.append(3)
 someInts = []
 /// 清空 或 removeAll() someInts is now an empty array, but is still of type [Int]
@@ -20,7 +21,7 @@ var sixDoubles = threeDoubles + anotherThreeDoubles
 //Creating an Array with an Array Literal
 /// 数组的元素类型必须是统一
 var shoppingList: [String] = ["Eggs", "Milk"]
-var shoppingList = ["Eggs", "Milk"] //type inference
+var shoppingList = ["Eggs", "Milk"] ///type inference
 let arr:Any = [1,2,"a","b"]
 
 //Accessing and Modifying an Array
@@ -43,7 +44,7 @@ Array(shoppingList[4...6])
 shoppingList.insert("Maple Syrup", at: 0)
 let mapleSyrup = remove(at: 0)
 let apples = shoppingList.removeLast()
-/// removeFirst()  removeAll()  removeAll(keepCapacity: true) 保持数组容量
+///removeFirst()  removeAll()  removeAll(keepCapacity: true) 保持数组容量
 shoppingList.index{ $0 == "Cheese" } ///index会返回一个Optional<Int>
 shoppingList.index(of:"CheeCheese")
 
@@ -93,7 +94,7 @@ copyB == b ///true
 var c = b.copy() as! NSArray
 b.insert(100, at: 0)
 c == b ///false
-
+t
 
 /*************************  数组变形 使用函数处理数组(参数化)  *******************************/
 //map
