@@ -120,7 +120,9 @@ result
 struct Person {
     var name: String
     var age: Int
+    /// 位旋法散列函数
     let INT_BIT = (Int)(CHAR_BIT) * MemoryLayout<Int>.size
+    ///The memory layout of a type, describing its size, stride, and alignment.
     func bitwiseRotate(value: Int, bits: Int) -> Int {
         return (((value) << bits) | ((value) >> (INT_BIT - bits)))
     }
@@ -145,7 +147,35 @@ let dict:[Person:Any] =
 print (dict.keys.map { $0.age * 10 })
 
 
+///About MemoryLayout
+struct Point {
+    let x: Double
+    let y: Double
+    let isFilled: Bool
+}
+MemoryLayout<Point>.size == 17
+MemoryLayout<Point>.stride == 24
+MemoryLayout<Point>.alignment == 8
+let count = 4
+let pointPointer = UnsafeMutableRawPointer.allocate(byteCount: count * MemoryLayout<Point>.stride,alignment: MemoryLayout<Point>.alignment)
+///The default memory alignment of T, in bytes.
+///Use the alignment property for a type when allocating memory using an unsafe pointer. This value is always positive.
 
+//************************************** Swift4.1 **************************************
+///class 不合成
+///extension 声明实现 Hashable 或 Equatable 时不合成
+struct Person:Equatable,Hashable {
+    var name: String
+    var age: Int
+}
+let student1 = Person(name: "Jack", age: 15)
+let student2 = Person(name: "Tom", age: 20)
+let dict:[Person:Any] =
+    [
+        student1 : 1,
+        student2 : 2
+]
+print (dict.keys.map { $0.age * 10 })
 
 
 
