@@ -171,9 +171,9 @@ struct Person:Equatable,Hashable {
 let student1 = Person(name: "Jack", age: 15)
 let student2 = Person(name: "Tom", age: 20)
 let dict:[Person:Any] =
-    [
-        student1 : 1,
-        student2 : 2
+[
+    student1 : 1,
+    student2 : 2
 ]
 print (dict.keys.map { $0.age * 10 })
 
