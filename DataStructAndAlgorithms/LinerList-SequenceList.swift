@@ -46,8 +46,6 @@ public struct SequenceList<Element:Equatable> {
         }
         list.removeLastObject()
         count -= 1
-        list.removeLastObject()
-        count -= 1
     }
     private func index(element:Element) -> Int? {
         var currentIndex = 0
