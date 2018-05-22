@@ -85,7 +85,7 @@ extension Array where Element: Comparable {
     mutating func mergeSortInPlace() {
         var tempArray:[Element] = []
         tempArray.reserveCapacity(count)
-        func merge(currentStrideIndex: Int, nextCompareUnitIndex: Int, endIndex: Int) {
+        func merge(currentStrideIndex: Int, nextComparedUnitIndex: Int, endIndex: Int) {
             tempArray.removeAll(keepingCapacity: true)  /// 在函数内捕获局部变量
             var cursorL = currentStrideIndex, cursorR = nextCompareUnitIndex
             while cursorL != nextCompareUnitIndex && cursorR != endIndex {
