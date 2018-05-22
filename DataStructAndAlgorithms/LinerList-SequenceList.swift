@@ -29,7 +29,7 @@ public struct SequenceList<Element:Equatable> {
         count += 1
     }
     mutating func insert(newElement element:Element, at index:Int) {
-        assert(index >= 0 && index < count)
+        assert(index >= 0 && index <= count)
         var endIndex = count
         while index < endIndex {
             list[endIndex] = list[endIndex - 1]
@@ -39,11 +39,13 @@ public struct SequenceList<Element:Equatable> {
         count += 1
     }
     mutating func remove(element:Element) {
-        index(element: element).map {
-            for cursor in $0..<count - 1 {
-                list[cursor] = list[cursor + 1]
+        if index != 0 {
+            for cursor in index..<count - 1 {
+                list[cursor] = list[cursor + 1 ]
             }
         }
+        list.removeLastObject()
+        count -= 1
         list.removeLastObject()
         count -= 1
     }
@@ -61,11 +63,7 @@ public struct SequenceList<Element:Equatable> {
 }
 extension SequenceList: CustomDebugStringConvertible {
     public var debugDescription: String{
-        var str = ""
-        for (i,element) in list.enumerated() {
-            str += "index:\(i) -> \(element)" + "\n"
-        }
-        return str
+        return list.enumerated().map { "\($0.offset) = \($0.element)" }.joined(separator: ", ") + "\n"
     }
 }
 var arr = SequenceList<Int>(capacity: 5)
