@@ -39,13 +39,15 @@ public struct SequenceList<Element:Equatable> {
         count += 1
     }
     mutating func remove(element:Element) {
-        if index != 0 {
-            for cursor in index..<count - 1 {
-                list[cursor] = list[cursor + 1 ]
+        index(element: element).map{
+            if $0 != 0 {
+                ($0..<count - 1).forEach{ i in
+                    list[i] = list[i + 1]
+                }
             }
+            list.removeLastObject()
+            count -= 1
         }
-        list.removeLastObject()
-        count -= 1
     }
     private func index(element:Element) -> Int? {
         var currentIndex = 0
@@ -61,7 +63,7 @@ public struct SequenceList<Element:Equatable> {
 }
 extension SequenceList: CustomDebugStringConvertible {
     public var debugDescription: String{
-        return list.enumerated().map { "\($0.offset) = \($0.element)" }.joined(separator: ", ") + "\n"
+        return list.enumerated().map { "\($0.offset) = \($0.element)" }.joined(separator: "\n")
     }
 }
 var arr = SequenceList<Int>(capacity: 5)
