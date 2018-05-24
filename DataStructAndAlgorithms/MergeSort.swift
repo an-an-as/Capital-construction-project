@@ -112,6 +112,7 @@ extension Array where Element: Comparable {
         }
     }
 }
-var array =  [1,3,2,4,5,9,7,10,6,8]
-array.mergeSortInPlace()
-print(array)
+var num = [Int]()
+(1...20).forEach { _ in num.append(Int(arc4random() % 20))}
+num.mergeSortInPlace()
+print(num)
