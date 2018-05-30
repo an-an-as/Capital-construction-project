@@ -60,11 +60,9 @@ extension RandomAccessCollection where Element: Comparable {
         return binarySearching(value: value, precondition: <)
     }
 }
-let sortedArray = ["a", "b", "c", "d", "e", "f", "g"]
-let reversedArray = sortedArray.reversed()
-_ = reversedArray.binarySearching(value: "g", precondition: >) == reversedArray.startIndex /// true
-
-let arraySlice = sortedArray[2..<5]
-let out = arraySlice.binarySearched(value: "d") /// Optional(3)
-let index = arraySlice.startIndex /// 2
-
+var arr = ["a","b","c","d","e","f"]
+arr.binarySearched(value: "a").map { print($0) }
+arr.reversed().binarySearching(value: "a", precondition: >).map{ print($0) } ///ReversedIndex<Array<Int>>(base: 1)
+debugPrint(arr.reversed().binarySearching(value: "f", precondition: >) == arr.reversed().startIndex) ///true
+debugPrint (arr[2...5].startIndex ) ///2
+arr[2...5].binarySearched(value: "f").map{ print("sliceIndex:\($0)") }///sliceIndex:5
