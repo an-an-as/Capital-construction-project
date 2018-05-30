@@ -36,18 +36,18 @@
  /// - Returns: 查询结果为可选值
  */
 extension RandomAccessCollection {
-    public func binarySearch(value: Element, precondition: (Element,Element) -> Bool) -> Index? {
+    public func binarySearching(value: Element, precondition: (Element,Element) -> Bool) -> Index? {
         guard !isEmpty else { return nil }
-        var left = startIndex
-        var right = index(before: endIndex)
-        while left <= right {
-            let steps = distance(from: left, to: right)
-            let mid = index(left, offsetBy: steps / 2)
+        var cursorL = startIndex
+        var cursorR = index(before: endIndex)
+        while cursorL <= cursorR {
+            let steps = distance(from: cursorL, to: cursorR)
+            let mid = index(cursorL, offsetBy: steps / 2)
             let candicate = self[mid]
             if precondition(candicate, value) {
-                left = index(after: mid)
+                cursorL = index(after: mid)
             } else if precondition(value, candicate) {
-                right = index(before: mid)
+                cursorR = index(before: mid)
             } else {
                 return mid
             }
@@ -56,13 +56,15 @@ extension RandomAccessCollection {
     }
 }
 extension RandomAccessCollection where Element: Comparable {
-    func binarySearch(value: Element) -> Index? {
-        return binarySearch(value: value, precondition: <)
+    func binarySearched(value: Element) -> Index? {
+        return binarySearching(value: value, precondition: <)
     }
 }
-let a = ["a", "b", "c", "d", "e", "f", "g"]
-let r = a.reversed()
-r.binarySearch(for: "g", areInIncreasingOrder: >) == r.startIndex /// true
-let s = a[2..<5]
-s.startIndex /// 2
-s.binarySearch(for: "d") /// Optional(3)
+let sortedArray = ["a", "b", "c", "d", "e", "f", "g"]
+let reversedArray = sortedArray.reversed()
+_ = reversedArray.binarySearching(value: "g", precondition: >) == reversedArray.startIndex /// true
+
+let arraySlice = sortedArray[2..<5]
+let out = arraySlice.binarySearched(value: "d") /// Optional(3)
+let index = arraySlice.startIndex /// 2
+
