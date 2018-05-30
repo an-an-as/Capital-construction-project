@@ -39,17 +39,15 @@ public struct SequenceList<Element:Equatable> {
         count += 1
     }
     mutating func remove(element:Element) {
-        index(element: element).map{
-            if $0 != 0 {
-                ($0..<count - 1).forEach{ i in
-                    list[i] = list[i + 1]
-                }
+        getIndex(element: element).map { index in
+            (index..<count - 1).forEach{
+                list[$0] = list[$0 - 1]
             }
             list.removeLastObject()
             count -= 1
         }
     }
-    private func index(element:Element) -> Int? {
+    private func getIndex(element:Element) -> Int? {
         var currentIndex = 0
         while currentIndex < count - 1 {
             if list[currentIndex] as! Element == element  {
