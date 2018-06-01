@@ -40,8 +40,8 @@ public struct SequenceList<Element:Equatable> {
     }
     mutating func remove(element:Element) {
         getIndex(element: element).map { index in
-            (index..<count - 1).forEach{
-                list[$0] = list[$0 - 1]
+            (index..<count - 1).forEach {
+                list[$0] = list[$0 + 1]
             }
             list.removeLastObject()
             count -= 1
@@ -49,7 +49,7 @@ public struct SequenceList<Element:Equatable> {
     }
     private func getIndex(element:Element) -> Int? {
         var currentIndex = 0
-        while currentIndex < count - 1 {
+        while currentIndex < count {
             if list[currentIndex] as! Element == element  {
                 return currentIndex
             } else {
@@ -62,6 +62,12 @@ public struct SequenceList<Element:Equatable> {
 extension SequenceList: CustomDebugStringConvertible {
     public var debugDescription: String{
         return list.enumerated().map { "\($0.offset) = \($0.element)" }.joined(separator: "\n")
+    }
+}
+extension SequenceList: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: Element...) {
+        self.init(capacity: elements.count)
+        elements.forEach{ append(newElement: $0) }
     }
 }
 var arr = SequenceList<Int>(capacity: 5)
