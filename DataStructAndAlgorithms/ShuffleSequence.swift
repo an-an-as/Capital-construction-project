@@ -7,7 +7,7 @@ extension BinaryInteger{
     static func arc4random_uniform(_ upper_bound:Self)->Self{
         precondition(upper_bound > 0 && UInt32(upper_bound) < UInt32.max,
                      "arc4random_uniform only callable up to \(UInt32.max)")
-        return Self(Darwin.arc4random_uniform(UInt32(upper_bound)))
+        return Self(Darwin.arc4random_uniform(UInt32(upper_bound)))fu
     }
 }
 extension MutableCollection where Self:RandomAccessCollection{
