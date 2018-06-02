@@ -7,20 +7,20 @@ extension BinaryInteger{
     static func arc4random_uniform(_ upper_bound:Self)->Self{
         precondition(upper_bound > 0 && UInt32(upper_bound) < UInt32.max,
                      "arc4random_uniform only callable up to \(UInt32.max)")
-        return Self(Darwin.arc4random_uniform(UInt32(upper_bound)))fu
+        return Self(Darwin.arc4random_uniform(UInt32(upper_bound)))
     }
 }
 extension MutableCollection where Self:RandomAccessCollection{
     mutating func shuffle(){
-        var cursorL = startIndex
+        var cursor = startIndex
         let beforeEndIndex = index(before: endIndex)
-        while cursorL < beforeEndIndex {
-            let dist = distance(from: cursorL, to: endIndex)
+        while cursor < beforeEndIndex {
+            let dist = distance(from: cursor, to: endIndex)
             let randomDistance = Int.arc4random_uniform(dist)
             ///IndexDistance' is deprecated: all index distances are now of type Int
-            let randomOffset = index(cursorL, offsetBy: randomDistance)
-            self.swapAt(cursorL, randomOffset)
-            formIndex(after: &cursorL)
+            let randomOffset = index(cursor, offsetBy: randomDistance)
+            self.swapAt(cursor, randomOffset)
+            formIndex(after: &cursor)
         }
     }
 }
@@ -32,5 +32,8 @@ extension MutableCollection where Self: RandomAccessCollection, Self: RangeRepla
         return clone
     }
 }
-var numbers = Array(1...10).shuffled()
-print(numbers)
+var arr = [1,2,3,4,5]
+let out = arr.shuffled()
+print(arr,out, separator: "\n", terminator: "\n")
+///[1, 2, 3, 4, 5]
+///[4, 1, 5, 3, 2]
