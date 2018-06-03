@@ -13,45 +13,44 @@ indirect enum BinarySearchTree<Element:Comparable> {
     case node(BinarySearchTree<Element>,Element,BinarySearchTree<Element>)
 }
 extension BinarySearchTree {
-    init()  {
+    init() {
         self = .leaf
     }
-    init(_ value:Element) {
+    init(value:Element) {
         self = .node(.leaf,value,.leaf)
-    }
-}
-extension BinarySearchTree {
-    func reduce<A>(leaf LEAF:A,node NODE:(A,Element,A) -> A) -> A {
-        switch self {
-        case .leaf:
-            return LEAF
-        case let .node(left,value,right):
-            return NODE(left.reduce(leaf: LEAF, node: NODE),value,right.reduce(leaf: LEAF, node: NODE))
-        }
-    }
-}
-extension BinarySearchTree {
-    var elements: [Element] {
-        return reduce(leaf: []) {$0 + [$1] + $2}
-    }
-    var count: Int {
-        return reduce(leaf: 0) { 1 + $0 + $2 }
     }
 }
 extension BinarySearchTree {
     var isEmpty:Bool {
         if case .leaf = self {
             return true
+        } else {
+            return false
         }
-        return false
     }
 }
 extension BinarySearchTree {
-    func contains(_ value:Element) -> Bool {
+    mutating func insert(_ value:Element) {
+        switch self {
+        case .leaf:
+            self = BinarySearchTree(value: value)
+        case .node(var left,let current,var right):
+            if value < current {
+                left .insert(value)
+            }
+            if value > current {
+                right.insert(value)
+            }
+            self = .node(left,current,right)
+        }
+    }
+}
+extension BinarySearchTree {
+    func contains(_ value:Element ) -> Bool {
         switch self {
         case .leaf:
             return false
-        case .node(_,let current,_) where value == current:
+        case .node(_,let current,_) where current == value:
             return true
         case let .node(left,current,_) where value < current:
             return left.contains(value)
@@ -62,54 +61,59 @@ extension BinarySearchTree {
         }
     }
 }
+
 extension BinarySearchTree {
-    var isBST: Bool {
+    func reduce<T>(initial leaf:T, handle node: @escaping (T,Element,T) -> T) -> T {
         switch self {
         case .leaf:
-            return true
-        case let .node(left, x, right):
-            return left.elements.all { y in y < x } // elements 中的子树都要小于当前节点
-                && right.elements.all { y in y > x }
-                && left.isBST
-                && right.isBST
+            return leaf
+        case let .node(leafL,value,leafR):
+            return node(leafL.reduce(initial: leaf, handle: node),value,
+                        leafR.reduce(initial: leaf, handle: node))
         }
     }
 }
+extension BinarySearchTree {
+    var elements:[Element] {
+        return reduce(initial: [], handle: { $0 + [$1] + $2 })
+        ///当计算属性调用的时候执行逃逸函数
+    }
+    var count:Int {
+        return reduce(initial: 0, handle: { 1 + $0 + $2 })
+    }
+}
 extension Sequence {
-    func all(predicate: (Iterator.Element) -> Bool) -> Bool {
-        for x in self where !predicate(x) {
+    func checkAll(predicate:(Iterator.Element) -> Bool) -> Bool {
+        for element in self where !predicate(element) {
             return false
         }
         return true
     }
 }
 extension BinarySearchTree {
-    mutating func insert(_ value:Element) {
+    var isBST:Bool {
         switch self {
         case .leaf:
-            self = BinarySearchTree(value)
-        case .node(var left, let current, var right):
-            if value < current { left.insert(value) }
-            if value > current { right.insert(value)}
-            self = .node(left,current,right)
+            return true
+        case let .node(treeL,root,treeR):
+            return treeL.elements.checkAll{ $0 < root } && treeR.elements.checkAll{ $0 > root }
+                && treeL.isBST && treeR.isBST /// 再次递归包含根节点 遍历重复包含前两次效率低
         }
     }
 }
-///拼接两个基础元素类型相同的迭代器
-///返回的迭代器会先读取 first 迭代器的所有元素；在该迭代器被耗尽之后，则会从 second 迭代器中生成元素。如果两个迭代器都返回 nil，该合成迭代器也会返回 nil。
-func +<I: IteratorProtocol, J: IteratorProtocol>(
-    first: I, second: @escaping @autoclosure () -> J)
-    -> AnyIterator<I.Element> where I.Element == J.Element
-{
-    var one = first
-    var other: J? = nil
+func +<L:IteratorProtocol,R:IteratorProtocol>(lhs:L,rhs:@escaping @autoclosure () -> R ) -> AnyIterator<L.Element> where L.Element == R.Element {
+    var l = lhs
+    var other: R? = nil
     return AnyIterator {
         if other != nil {
             return other!.next()
-        } else if let result = one.next() {
+            ///  left.makeIterator() + CollectionOfOne(value).makeIterator()
+        } else if let result = l.next() {
+            ///CollectionOfOne(value).makeIterator()  -> nil  || CollectionOfOne(value).makeIterator() + right.makeIterator()
             return result
         } else {
-            other = second()
+            other = rhs()
+            /// nil +  CollectionOfOne(value).makeIterator() + nil
             return other!.next()
         }
     }
@@ -117,21 +121,23 @@ func +<I: IteratorProtocol, J: IteratorProtocol>(
 extension BinarySearchTree: Sequence {
     func makeIterator() -> AnyIterator<Element> {
         switch self {
-        case .leaf: return AnyIterator { return nil }
-        case let .node(l, element, r):
-            return l.makeIterator() + CollectionOfOne(element).makeIterator() +
-                r.makeIterator()
+        case .leaf:
+            return AnyIterator{ return nil }
+        case let .node( left,value,right ):
+            return left.makeIterator() + CollectionOfOne(value).makeIterator() + right.makeIterator()
         }
     }
 }
-
-
-
-var bst: BinarySearchTree<Int> = BinarySearchTree()
-bst.insert(1)
-bst.insert(2)
-bst.insert(3)
-
-print(bst.elementsR)
-print(bst.isBST)
-print(bst.contains(1))
+extension BinarySearchTree: ExpressibleByArrayLiteral {
+    init(arrayLiteral elements:Element ...) {
+        self.init()
+        elements.forEach{ insert($0) }
+    }
+}
+extension BinarySearchTree: CustomStringConvertible {
+    var description: String {
+        return "\(elements)"
+    }
+}
+var tree:BinarySearchTree<Int> = [1,2,3,4,5]
+print(tree,tree.count,tree.isBST,tree.isEmpty,tree.contains(5), separator: "\n", terminator: "\n")
