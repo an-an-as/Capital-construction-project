@@ -68,6 +68,7 @@ extension SequenceList: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: Element...) {
         self.init(capacity: elements.count)
         elements.forEach{ append(newElement: $0) }
+        count = elements.count
     }
 }
 var arr = SequenceList<Int>(capacity: 5)
