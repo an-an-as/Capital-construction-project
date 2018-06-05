@@ -24,7 +24,7 @@ extension BinarySearchTree {
     var isEmpty:Bool {
         if case .leaf = self {
             return true
-        } else {
+        } else { scu
             return false
         }
     }
@@ -61,7 +61,6 @@ extension BinarySearchTree {
         }
     }
 }
-
 extension BinarySearchTree {
     func reduce<T>(initial leaf:T, handle node: @escaping (T,Element,T) -> T) -> T {
         switch self {
