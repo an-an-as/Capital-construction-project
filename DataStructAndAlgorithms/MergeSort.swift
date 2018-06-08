@@ -81,44 +81,47 @@
  
  ************************************************************************************************************************************************************************/
 import Foundation
-extension Array where Element: Comparable {
+extension Array where Element:Comparable {
     mutating func mergeSortInPlace() {
-        var tempArray:[Element] = []
-        tempArray.reserveCapacity(count)
-        func merge(currentStrideIndex: Index, nextComparedUnitIndex: Index, endIndex: Index) {
-            tempArray.removeAll(keepingCapacity: true)  /// 在函数内捕获局部变量
-            var cursorL = currentStrideIndex, cursorR = nextCompareUnitIndex
-            while cursorL != nextCompareUnitIndex && cursorR != endIndex {
-                if  self[cursorL] > self[cursorR]  {
-                    tempArray.append(self[cursorR])
+        var tempArr = [Element]()
+        tempArr.reserveCapacity(count)
+        func merge(currentStride: Index, nextNeedComparied: Index, endIndex: Index) {
+            tempArr.removeAll(keepingCapacity: true)
+            var cursorL = currentStride
+            var cursorR = nextNeedComparied
+            while cursorL < nextNeedComparied && cursorR < endIndex {
+                if self[cursorL] > self[cursorR] {
+                    tempArr.append(self[cursorR])
                     cursorR += 1
-                }
-                else {
-                    tempArray.append(self[cursorL])
+                } else {
+                    tempArr.append(self[cursorL])
                     cursorL += 1
                 }
             }
-            tempArray.append(contentsOf: self[cursorL..<nextCompareUnitIndex])
-            tempArray.append(contentsOf: self[cursorR..<endIndex])
-            replaceSubrange(currentStrideIndex..<endIndex, with: tempArray)
+            tempArr.append(contentsOf: self[cursorL..<nextNeedComparied])
+            tempArr.append(contentsOf: self[cursorR..<endIndex])
+            replaceSubrange(currentStride..<endIndex, with: tempArr)
         }
-        let arrayCount = count
         var size = 1
-        while size < arrayCount {
-            for currentStride in stride(from: 0, to: arrayCount - size, by: size * 2) {
-                merge(currentStrideIndex: currentStride, nextCompareUnitIndex: (currentStride + size), endIndex: Swift.min(currentStride + size * 2, arrayCount))
+        let arrCount = count
+        while size < arrCount {
+            for stride in stride(from: 0, to: arrCount - size, by: size * 2) {
+                merge(currentStride: stride, nextNeedComparied: stride + size, endIndex: Swift.min(stride + size * 2, arrCount))
             }
             size *= 2
         }
     }
-    func mergeSort() -> [Element] {
+    func mergeSort() -> [Element]{
         var clone = Array.init()
         clone.append(contentsOf: self)
         clone.mergeSortInPlace()
         return clone
     }
 }
-var num = [Int]()
-(1...20).forEach { _ in num.append(Int(arc4random() % 1_000))}
-num.mergeSortInPlace()
-///[30, 93, 100, 134, 192, 194, 274, 286, 312, 368, 435, 485, 596, 653, 755, 824, 872, 965, 987, 989]
+var arr = [Int]()
+(0...20).forEach{ _ in
+    arr.append(Int(arc4random() % 1_00))
+}
+arr.mergeSortInPlace()
+print(arr)
+///[59, 155, 194, 230, 270, 289, 295, 324, 329, 374, 386, 391, 495, 513, 528, 575, 583, 641, 672, 680, 823]
