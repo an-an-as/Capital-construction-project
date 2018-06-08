@@ -111,8 +111,14 @@ extension Array where Element: Comparable {
             size *= 2
         }
     }
+    func mergeSort() -> [Element] {
+        var clone = Array.init()
+        clone.append(contentsOf: self)
+        clone.mergeSortInPlace()
+        return clone
+    }
 }
 var num = [Int]()
-(1...20).forEach { _ in num.append(Int(arc4random() % 20))}
+(1...20).forEach { _ in num.append(Int(arc4random() % 1_000))}
 num.mergeSortInPlace()
-print(num)
+///[30, 93, 100, 134, 192, 194, 274, 286, 312, 368, 435, 485, 596, 653, 755, 824, 872, 965, 987, 989]

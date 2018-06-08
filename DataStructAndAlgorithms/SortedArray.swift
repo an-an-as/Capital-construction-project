@@ -1,5 +1,4 @@
 import Foundation
-
 public protocol SortedSet: BidirectionalCollection, CustomStringConvertible where Element: Comparable {
     init()
     func contains(_ element: Element) -> Bool

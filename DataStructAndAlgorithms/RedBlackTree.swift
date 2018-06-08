@@ -1,5 +1,10 @@
+/// 根节点是黑色的,红色节点只拥有黑色的子节点。(只要有，就一定是),从根节点到一个空位，树中存在的每一条路径都包含相同数量的黑色节点
+/// Swift 编译器有时自己就能够将颜色的值放到一个未使用的二进制位
+/// 相较于 C/C++/Objective-C，Swift 类型的二进制布局非常灵活，而且编译器拥有很大程度的自由来决定如何进行打包。
+/// 对于具有关联值的枚举来说尤其如此，编译器经常能够找到未使用的位模式来表示枚举成员，而无需分配额外的空间来区分它们。
+/// 例如，Optional 会将一个引用类型封装到其自身的空间中。Optional.none 成员则由一个从来没有被任何有效引用使用过的 (全零) 位模式来表示。
+/// (相同的全零位模式也用来表示 C 的空指针和 Objective-C 的 nil 值，这在某种程度上提供了二进制兼容性。)
 import Foundation
-
 protocol SortedSet: BidirectionalCollection, CustomStringConvertible where Element: Comparable {
     init()
     func contains(_ element: Element) -> Bool
@@ -11,7 +16,6 @@ extension SortedSet {
         return "[\(contents)]"
     }
 }
-
 public enum Color {
     case black
     case red
@@ -39,10 +43,19 @@ extension RedBlackTree: CustomStringConvertible {
         return self.diagram("", "", "")
     }
 }
+///  right.diagram 每递归一次空格就会就加长  top: top + “   ”
+///  没有右节点的引用后 执行 .node(color, value, .empty, .empty) root: top + "┌───"  换行
+///  执行+ root + "\(color.symbol) \(value)\n"  在后面添加 root: top + "┌─── "
+///  执行  + left.diagram root:  bottom + "└───"  此时 top: bottom + "│   "  bottom: 空格
+///  回到上一次递归 (right.diagram 结束)
+///  执行 .node(color, value, .empty, .empty) root = top +  "┌───" 此时 top为 上次right传过来的 bottom + "│   "
+///          buttom(空格)+   │
+///  形状会变成           ┌───值
 public enum RedBlackTree<Element: Comparable> {
     case empty
     indirect case node(Color, Element, RedBlackTree, RedBlackTree)
 }
+/// indirect 关键字强调了代码中递归的存在，而且也允许编译器将节点的值装箱到隐藏的在堆上申请内存的引用类型中。(这么做是必须的，它可以防止不必要的麻烦，比如编译器无法将特定的存储大小分配给枚举值)
 public extension RedBlackTree {
     func contains(_ element: Element) -> Bool {
         switch self {
@@ -53,6 +66,7 @@ public extension RedBlackTree {
         }
     }
 }
+///中序遍历 (inorder walk)
 public extension RedBlackTree {
     func forEach(_ body: (Element) throws -> Void) rethrows {
         switch self {
@@ -135,6 +149,7 @@ extension RedBlackTree.Index: Comparable {
 }
 extension RedBlackTree {
     func min() -> Element? {
+        ///效率低 Collection 要求 startIndex 和 endIndex 的实现应该在常数时间内完成
         switch self {
         case .empty:
             return nil
@@ -224,3 +239,10 @@ tree.insert(3)
 
 tree.reduce(0,+)
 print(tree)
+
+/// 新的树会和原来的树共享一些节点，但是在从根节点到新加入的节点的路径上的节点都是新创建的。这种做法可以很“容易”地实现值语义，但是会造成一些浪费
+/// 如果树的某些节点没有被其他值引用的话,可以直接修改它们。这不会造成任何问题，因为根本没有其他人知道这个特定的树的实例。直接修改可以避免绝大部分的复制和内存申请操作，通常这会让性能得到大幅提升
+/// Swift 通过提供 isKnownUniquelyReferenced 函数来为引用类型实现优化的写时复制值语义。但是在 Swift 4 中，语言本身并没有为我们提供为代数数据类型实现写时复制的工具。
+/// 我们无法访问 Swift 用来包装节点的私有引用类型，因此也就无法获知某个特定节点是不是只有单一引用。(编译器自己还不够聪明，它也并不能帮我们做写时复制优化。)
+/// 同时，想要直接获取一个枚举成员里的值，我们也只能先提取一份它的单独的复制。(注意，与此不同，Optional 通过强制解包运算符 !，提供了直接访问存储的值的方式。
+/// 然而，为枚举类型提供类似的原地访问的工具只能被使用在标准库中，在标准库外它们是不可用的。
