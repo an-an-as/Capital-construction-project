@@ -1,79 +1,63 @@
-/**:
- 1.数据结构整体可以分为物理结构和逻辑结构，物理结构指的是数据在磁盘、内存等硬件上的存储结构，主要包括顺序结构和链式结构
-   而逻辑结构是数据本身所形成的结构，包括集合结构、线性结构、树形结构以及图形结构
- 2.数组是相同数据类型的元素按一定顺序排列的集合,是物理上存储在一组连续的地址
- 3.线性表是数据结构中的逻辑结构。可以存储在数组上(顺序存储)，也可以存储在链表上(链式存储),用数组来存储的线性表就是顺序表
- 4.数组通过系统给数组分配了一块内存。线性表的大小是可变动态分配
- - 末尾追加元素
- - 索引元素下标
- - 根据下标修改元素
- - 根据下标插入元素
- - 移除元素
- */
-import Foundation
-public struct SequenceList<Element:Equatable> {
-    private var list: NSMutableArray
-    private(set) public var count = 0
-    public var capacity = 0
-    init(capacity:Int){
-        self.capacity = capacity
-        list = NSMutableArray(capacity: capacity)
+/** ____________________________________________________________________________________________________
+ 
+ 1. 数据结构整体可以分为物理结构和逻辑结构，物理结构指的是数据在磁盘、内存等硬件上的存储结构，主要包括顺序结构和链式结构
+    而逻辑结构是数据本身所形成的结构，包括集合结构、线性结构、树形结构以及图形结构
+ 2. 数组是相同数据类型的元素按一定顺序排列的集合,是物理上存储在一组连续的地址
+ 3. 线性表是数据结构中的逻辑结构。可以存储在数组上(顺序存储)，也可以存储在链表上(链式存储),用数组来存储的线性表就是顺序表
+ 4. 数组通过系统给数组分配了一块内存。线性表的大小是可变动态分配
+ ________________________________________________________________________________________________________*/
+public struct SequenceList<Element:Comparable> {
+    typealias Index = Int
+    fileprivate var list: ContiguousArray<Element>
+    fileprivate(set) var count = 0
+    init(capacity: Int) {
+        list = ContiguousArray.init()
+        list.reserveCapacity(capacity)
     }
-    func fetchValue(_ index:Int) -> Element? {
-        assert(index >= 0 && index < count)
-        
-        return list[index] as? Element
-    }
-    mutating func append(newValue value:Element) {
-        list[count] = value
+    mutating func append(_ newElement:Element) {
+        list[count] = newElement
         count += 1
     }
-    mutating func insert(newElement element:Element, at index:Int) {
+    mutating func insert(_ newElement: Element, at index: Index) {
         assert(index >= 0 && index <= count)
         var endIndex = count
         while index < endIndex {
+            defer{ endIndex -= 1 }
             list[endIndex] = list[endIndex - 1]
-            endIndex -= 1
         }
-        list[index] = element
+        list[index] = newElement
         count += 1
     }
-    mutating func remove(element:Element) {
-        getIndex(element: element).map { index in
-            (index..<count - 1).forEach {
+    mutating func remove(_ element: Element) {
+        findIndex(of: element).map{ index in
+            (index ..< count - 1).forEach {
                 list[$0] = list[$0 + 1]
             }
-            list.removeLastObject()
+            list.removeLast()
             count -= 1
         }
     }
-    private func getIndex(element:Element) -> Int? {
-        var currentIndex = 0
-        while currentIndex < count {
-            if list[currentIndex] as! Element == element  {
-                return currentIndex
+    fileprivate func findIndex(of element: Element) -> Index? {
+        var cursor = 0
+        while cursor < count {
+            if list[cursor] == element {
+                return cursor
             } else {
-                currentIndex += 1
+                cursor += 1
             }
         }
         return nil
     }
 }
-extension SequenceList: CustomDebugStringConvertible {
-    public var debugDescription: String{
-        return list.enumerated().map { "\($0.offset) = \($0.element)" }.joined(separator: "\n")
-    }
-}
 extension SequenceList: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: Element...) {
         self.init(capacity: elements.count)
-        elements.forEach{ append(newElement: $0) }
+        list.append(contentsOf: elements)
         count = elements.count
     }
 }
-var arr = SequenceList<Int>(capacity: 5)
-arr.append(newValue: 1)
-arr.append(newValue: 3)
-arr.insert(newElement: 2, at: 1)
-arr.remove(element: 1)
-print(arr.debugDescription,arr.count,arr.capacity)
+extension SequenceList: CustomStringConvertible {
+    public var description: String {
+        return list.enumerated().map { " \($0.offset) -> \($0.element) " }.joined(separator: "\n")
+    }
+}
