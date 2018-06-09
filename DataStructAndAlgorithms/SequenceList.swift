@@ -6,6 +6,7 @@
  3. 线性表是数据结构中的逻辑结构。可以存储在数组上(顺序存储)，也可以存储在链表上(链式存储),用数组来存储的线性表就是顺序表
  4. 数组通过系统给数组分配了一块内存。线性表的大小是可变动态分配
  ________________________________________________________________________________________________________*/
+import Foundation
 public struct SequenceList<Element:Comparable> {
     typealias Index = Int
     fileprivate var list: ContiguousArray<Element>
@@ -13,10 +14,6 @@ public struct SequenceList<Element:Comparable> {
     init(capacity: Int) {
         list = ContiguousArray.init()
         list.reserveCapacity(capacity)
-    }
-    mutating func append(_ newElement:Element) {
-        list[count] = newElement
-        count += 1
     }
     mutating func insert(_ newElement: Element, at index: Index) {
         assert(index >= 0 && index <= count)
@@ -47,6 +44,28 @@ public struct SequenceList<Element:Comparable> {
             }
         }
         return nil
+    }
+}
+extension SequenceList {
+    mutating func append(_ newElement:Element) {
+        list[count] = newElement
+        count += 1
+    }
+    func getElement(at index: Index) -> Element {
+        assert(index >= 0 && index <= count)
+        return list[index]
+    }
+    mutating func replaceValue(_ newElement:Element, at index: Index) {
+        assert(index >= 0 && index <= count)
+        list[index] = newElement
+    }
+    subscript(index:Index) -> Element{
+        get {
+            return getElement(at: index)
+        }
+        set {
+            replaceValue(newValue, at: index)
+        }
     }
 }
 extension SequenceList: ExpressibleByArrayLiteral {
