@@ -12,15 +12,15 @@ extension BinaryInteger{
 }
 extension MutableCollection where Self:RandomAccessCollection{
     mutating func shuffle(){
-        var cursor = startIndex
-        let beforeEndIndex = index(before: endIndex)
-        while cursor < beforeEndIndex {
+        var cursorL = startIndex
+        let cursorR = index(before: endIndex)
+        while cursorL < cursorR {
             let dist = distance(from: cursor, to: endIndex)
             let randomDistance = Int.arc4random_uniform(dist)
             ///IndexDistance' is deprecated: all index distances are now of type Int
-            let randomOffset = index(cursor, offsetBy: randomDistance)
-            self.swapAt(cursor, randomOffset)
-            formIndex(after: &cursor)
+            let randomOffset = index(cursorL, offsetBy: randomDistance)
+            self.swapAt(cursorL, randomOffset)
+            formIndex(after: &cursorL)
         }
     }
 }
