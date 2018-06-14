@@ -64,7 +64,7 @@ extension FIFOQueue: CustomStringConvertible {
         return "\(element1),\(element2)"
     }
 }
-extension FIFOQueue: TextOutputStreamable {
+extension FIFOQueue: TextOutputStreamsliable {
     func write<Target>(to target: inout Target) where Target : TextOutputStream {
         target.write("[")
         target.write(map{ String(describing: $0) }.joined(separator: ", "))
