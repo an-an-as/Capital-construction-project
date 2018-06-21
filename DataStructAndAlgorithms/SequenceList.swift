@@ -7,37 +7,38 @@
  4. 数组通过系统给数组分配了一块内存。线性表的大小是可变动态分配
  ________________________________________________________________________________________________________*/
 import Foundation
-public struct SequenceList<Element:Comparable> {
-    typealias Index = Int
-    fileprivate var list: ContiguousArray<Element>
+public struct SequenceList<Element: Equatable> {
+    fileprivate var list: NSMutableArray
     fileprivate(set) var count = 0
     init(capacity: Int) {
-        list = ContiguousArray.init()
-        list.reserveCapacity(capacity)
+        list = NSMutableArray(capacity: capacity)
     }
-    mutating func insert(_ newElement: Element, at index: Index) {
-        assert(index >= 0 && index <= count)
+}
+extension SequenceList {
+    mutating func insert(newElement: Element, at index: Int) {
+        assert(index >= 0 && index < count)
         var endIndex = count
         while index < endIndex {
-            defer{ endIndex -= 1 }
             list[endIndex] = list[endIndex - 1]
+            endIndex -= 1
         }
         list[index] = newElement
         count += 1
     }
-    mutating func remove(_ element: Element) {
-        findIndex(of: element).map{ index in
-            (index ..< count - 1).forEach {
+    mutating func remove(element: Element) {
+        index(element: element).map { index in
+            (index..<count - 1).forEach {
                 list[$0] = list[$0 + 1]
             }
-            list.removeLast()
+            list.removeLastObject()
             count -= 1
         }
     }
-    fileprivate func findIndex(of element: Element) -> Index? {
+    func index(element: Element) -> Int? {
+        guard list.contains(element) else { return nil }
         var cursor = 0
         while cursor < count {
-            if list[cursor] == element {
+            if list[cursor] as? Element == element {
                 return cursor
             } else {
                 cursor += 1
@@ -47,36 +48,36 @@ public struct SequenceList<Element:Comparable> {
     }
 }
 extension SequenceList {
-    mutating func append(_ newElement:Element) {
+    mutating func append(newElement: Element) {
         list[count] = newElement
         count += 1
     }
-    func getElement(at index: Index) -> Element {
-        assert(index >= 0 && index <= count)
-        return list[index]
-    }
-    mutating func replaceValue(_ newElement:Element, at index: Index) {
-        assert(index >= 0 && index <= count)
+    mutating func replace(newElement: Element, at index: Int) {
+        assert(index >= 0 && index < count)
         list[index] = newElement
     }
-    subscript(index:Index) -> Element{
+    subscript (index: Int) -> Element? {
         get {
-            return getElement(at: index)
+            return list[index] as? Element
         }
         set {
-            replaceValue(newValue, at: index)
+            newValue.map { replace(newElement: $0, at: index) }
         }
     }
 }
 extension SequenceList: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: Element...) {
         self.init(capacity: elements.count)
-        list.append(contentsOf: elements)
+        list.addObjects(from: elements)
         count = elements.count
     }
 }
 extension SequenceList: CustomStringConvertible {
     public var description: String {
-        return list.enumerated().map { " \($0.offset) -> \($0.element) " }.joined(separator: "\n")
+        return list.enumerated().map { "List: \($0.offset) ->  \($0.element)" }.joined(separator: "\n")
     }
 }
+var list: SequenceList = [1, 2, 3, 4, 5]
+list.remove(element: 1)
+list.append(newElement: 6)
+print(list.description)
