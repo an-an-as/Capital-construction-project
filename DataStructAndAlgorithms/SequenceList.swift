@@ -8,76 +8,75 @@
  ________________________________________________________________________________________________________*/
 import Foundation
 public struct SequenceList<Element: Equatable> {
-    fileprivate var list: NSMutableArray
-    fileprivate(set) var count = 0
+    private var list: NSMutableArray
+    private(set) var count = 0
     init(capacity: Int) {
         list = NSMutableArray(capacity: capacity)
     }
 }
 extension SequenceList {
-    mutating func insert(newElement: Element, at index: Int) {
-        assert(index >= 0 && index < count)
+    public mutating func append(newValue: Element) {
+        list[count] = newValue
+        count += 1
+    }
+    public mutating func insert(newValue: Element, at index: Int) {
+        assert(index >= 0 && index <= count)
         var endIndex = count
         while index < endIndex {
             list[endIndex] = list[endIndex - 1]
             endIndex -= 1
         }
-        list[index] = newElement
+        list[index] = newValue
         count += 1
     }
-    mutating func remove(element: Element) {
-        index(element: element).map { index in
-            (index..<count - 1).forEach {
-                list[$0] = list[$0 + 1]
-            }
-            list.removeLastObject()
-            count -= 1
+    public mutating func remove(_ value: Element) {
+        assert(list.contains(value))
+        var index = list.index(of: value)
+        while index < count - 1 {
+            list[index] = list[index + 1]
+            index += 1
         }
+        list.removeLastObject()
+        count -= 1
     }
-    func index(element: Element) -> Int? {
-        guard list.contains(element) else { return nil }
-        var cursor = 0
-        while cursor < count {
-            if list[cursor] as? Element == element {
-                return cursor
-            } else {
-                cursor += 1
-            }
-        }
-        return nil
+    public mutating func replace(newValue: Element, at index: Int) {
+        assert(index >= 0 && index <= count)
+        list[index] = newValue
     }
 }
 extension SequenceList {
-    mutating func append(newElement: Element) {
-        list[count] = newElement
-        count += 1
-    }
-    mutating func replace(newElement: Element, at index: Int) {
-        assert(index >= 0 && index < count)
-        list[index] = newElement
-    }
-    subscript (index: Int) -> Element? {
+    public subscript (index: Int) -> Element? {
         get {
+            assert(index >= 0 && index <= count)
             return list[index] as? Element
         }
         set {
-            newValue.map { replace(newElement: $0, at: index) }
+            newValue.map {
+                replace(newValue: $0, at: index)
+            }
         }
     }
 }
 extension SequenceList: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: Element...) {
         self.init(capacity: elements.count)
-        list.addObjects(from: elements)
+        elements.forEach {
+            append(newValue: $0)
+        }
         count = elements.count
     }
 }
-extension SequenceList: CustomStringConvertible {
+extension SequenceList: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
-        return list.enumerated().map { "List: \($0.offset) ->  \($0.element)" }.joined(separator: "\n")
+        return "[" + list.map { "\($0)" }.joined(separator: ", ") + "]"
+    }
+    public var debugDescription: String {
+        return list.enumerated().map { "\($0.offset) -> \($0.element)" }.joined(separator: "\n")
     }
 }
-var list: SequenceList = [1, 2, 3, 4, 5]
-list.remove(element: 1)
-list.append(newElement: 6)
-print(list.description)
+var list: SequenceList = [1]
+list.append(newValue: 2)
+list.insert(newValue: 0, at: 0)
+list[0] = 1_000
+list.remove(1)
+print(list.description, list.debugDescription, separator: "\n", terminator: "\n")
