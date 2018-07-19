@@ -16,14 +16,14 @@
  + 每个结点的值都小于或等于其左右孩子结点的值，称为小顶堆。
  
  ## 基本思想及步骤
- + 将无需序列构建成一个堆，根据升序降序需求选择大顶堆或小顶堆;
+ + 将无序序列构建成一个堆，根据升序降序需求选择大顶堆或小顶堆;
  + 将堆顶元素与末尾元素交换，将最大元素"沉"到数组末端;
  + 重新调整结构，使其满足堆定义，然后继续交换堆顶元素与当前末尾元素，反复执行调整+交换步骤，直到整个序列有序
  
  ````
            4            0               arr [4,6,8,5,9]        for i in stride(from: (nodes.count/2-1), through: 0, by: -1){}  确定最后非叶子结点
-         /   \         / \                   0 1 2 3 4         如果从下标从1开始存储，则编号为i的结点的主要关系为： 父i/2         左2i  右2i+1
-       >6<    8       1   2                                    如果从下标从0开始存储，则编号为i的结点的主要关系为： (i - 1) / 2   2i+1  2i+2     [(i-1)-1/2] = i/2 -1
+         /   \         / \                   0 1 2 3 4         如果下标从1开始存储，则编号为i的结点的主要关系为： 父i/2         左2i  右2i+1
+       >6<    8       1   2                                    如果下标从0开始存储，则编号为i的结点的主要关系为： (i - 1) / 2   2i+1  2i+2     [(i-1)-1/2] = i/2 -1
        / \           / \
       5   9         3   4                                      假设设完全二叉树中第i个结点的位置为第k层第M个结点，
                                                                根据二叉树的特性，满二叉树的第K层共有2^K-1个节点
@@ -85,9 +85,9 @@
 
 public struct Heap<T> {
     var nodes = [T]()
-    private var order : (T, T) -> Bool
+    private var orderCriteria : (T, T) -> Bool
     public init(sort: @escaping (T, T) -> Bool) {
-        self.orderCriteria = sort
+        self.orderCriteria = sor
     }
     public init(array: [T], sort: @escaping (T, T) -> Bool) {
         self.orderCriteria = sort
@@ -157,11 +157,11 @@ public struct Heap<T> {
      * Note that you need to know the node's index.
      * 和最后的值交换 重新排序上下节点 删除最后 p
      */
-    @discardableResult public mutating func remove(at index: Int) -> T? {       ///     4                          4
-        guard index < nodes.count else { return nil }                           ///   3   1    -->              2     1   shitDown from index 1 由上往下
-        let size = nodes.count - 1                                              /// 2          deleIndex 1   3            shiftUp(index)        由下往上
-        if index != size {                                                      ///
-            nodes.swapAt(index, size)
+    @discardableResult public mutating func remove(at index: Int) -> T? {       ///      7                          7
+        guard index < nodes.count else { return nil }                           ///    6    5    -->               0 5            shitDown from index 1 由上往下调整
+        let size = nodes.count - 1                                              ///  4  3  2  1                  4 3  2 1         shiftUp(index)        由下往上调整
+        if index != size {                                                      /// 0                           6
+            nodes.swapAt(index, size)                                           /// remove 6
             shiftDown(from: index, until: size)
             shiftUp(index)
         }
@@ -175,7 +175,7 @@ public struct Heap<T> {
             nodes[childIndex] = nodes[parentIndex]                           ///      2   1       -->    2    1                        -->   3   1     -->  3   1
             childIndex = parentIndex                                         ///    4                  2                                   2              2
             parentIndex = self.parentIndex(ofIndex: childIndex)              ///    childIndex = 3     childIndex = 1   childIndex -> parent    2 < 3 childIndex = 0 break
-        }/// 插入的值和各个父节点进行比较f
+        }/// 插入的值和各个父节点进行比较
         nodes[childIndex] = child
     }
     internal mutating func shiftDown(from index: Int, until endIndex: Int) {                    ///     4                 first = index = 1
@@ -234,135 +234,3 @@ var h1 = Heap(array: [5, 13, 2, 25, 7, 17, 20, 8, 4], sort: >)
 let a1 = h1.sort()
 print(a1)
 ///[2, 4, 5, 7, 8, 13, 17, 20, 25]
-
-
-//////
-import Foundation
-public struct Heap<T> {
-    var nodes = [T]()
-    private var criteria: (T, T) -> Bool
-    init(_ array: [T], sort: @escaping (T, T) -> Bool) {
-        criteria = sort
-        configureHeap(with: array)
-    }
-}
-extension Heap {
-    mutating func configureHeap(with array: [T]) {
-        nodes = array
-        for index in stride(from: nodes.count/2 - 1, through: 0, by: -1) {
-            shiftDown(index)
-        }
-    }
-    @inline(__always) func parentIndex(of index: Int) -> Int {
-        return (index - 1) / 2
-    }
-    @inline(__always) func leftChildrenIndex(of index: Int) -> Int {
-        return index * 2 + 1
-    }
-    @inline(__always) func rightChildrenIndex(of index: Int) -> Int {
-        return index * 2 + 2
-    }
-}
-extension Heap {
-    mutating func shiftDown(_ index: Int) {
-        shiftDown(index: index, endIndex: nodes.count)
-    }
-    mutating func shiftDown(index: Int, endIndex: Int) {
-        let childIndexL = leftChildrenIndex(of: index)
-        let childIndexR = childIndexL + 1
-        var cursor = index
-        if childIndexL < endIndex && criteria(nodes[childIndexL], nodes[cursor]) {
-            cursor = childIndexL
-        }
-        if childIndexR < endIndex && criteria(nodes[childIndexR], nodes[cursor]) {
-            cursor = childIndexR
-        }
-        if cursor == index { return }
-        nodes.swapAt(index, cursor)
-        shiftDown(index: cursor, endIndex: endIndex)
-    }
-    mutating func shiftUp(_ index: Int) {
-        var cursor = index
-        let inserted = nodes[cursor]
-        var parentIndex = self.parentIndex(of: cursor)
-        while cursor > 0 && criteria(inserted, nodes[parentIndex]) {
-            nodes[cursor] = nodes[parentIndex]
-            cursor = parentIndex
-            parentIndex = self.parentIndex(of: cursor)
-        }
-        nodes[cursor] = inserted
-    }
-}
-extension Heap {
-    public mutating func sort() -> [T] {
-        for index in stride(from: nodes.count - 1, through: 1, by: -1) {
-            nodes.swapAt(0, index)
-            shiftDown(index: 0, endIndex: index)
-        }
-        return nodes
-    }
-}
-public func heapSort<T> (_ array: [T], sort: @escaping(T, T) -> Bool) -> [T] {
-    let reverse = { sort($1, $0) }
-    var heap = Heap(array, sort: reverse)
-    return heap.sort()
-}
-extension Heap {
-    public mutating func insert(_ newElement: T) {
-        nodes.append(newElement)
-        shiftUp(nodes.count - 1)
-    }
-    public mutating func insert<S: Sequence> (_ sequence: S ) where S.Iterator.Element == T {
-        for value in sequence {
-            insert(value)
-        }
-    }
-}
-extension Heap {
-    public mutating func remove() -> T? {
-        guard !nodes.isEmpty else { return nil}
-        if nodes.count == 1 {
-            return nodes.removeLast()
-        } else {
-            let value = nodes[0]
-            nodes[0] = nodes.removeLast()
-            shiftDown(0)
-            return value
-        }
-    }
-    @discardableResult public mutating func remove(at index: Int) -> T? {
-        guard index < nodes.count else { return nil }
-        let last = nodes.count - 1
-        if index != last {
-            nodes.swapAt(index, last)
-            shiftDown(index: index, endIndex: last)
-            shiftUp(index)
-        }
-        return nodes.removeLast()
-    }
-}
-extension Heap {
-    public mutating func replace(newValue: T, at index: Int) {
-        guard index < nodes.count else { return  }
-        remove(at: index)
-        insert(newValue)
-    }
-}
-extension Heap where T: Equatable {
-    public func index(of node: T) -> Int? {
-        return nodes.index(where: { $0 == node})
-    }
-    @discardableResult public mutating func remove(node: T) -> T? {
-        if let index = index(of: node) {
-            return remove(at: index)
-        }
-        return nil
-    }
-}
-var arr = [Int]()
-(0...10).forEach { _ in
-    let num = Int(arc4random_uniform(1_000))
-    arr.append(num)
-}
-let result = heapSort(arr, sort: <)
-print(result)
