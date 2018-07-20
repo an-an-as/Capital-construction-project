@@ -6,20 +6,44 @@
  3. 线性表是数据结构中的逻辑结构。可以存储在数组上(顺序存储)，也可以存储在链表上(链式存储),用数组来存储的线性表就是顺序表
  4. 数组通过系统给数组分配了一块内存。线性表的大小是可变动态分配
  ________________________________________________________________________________________________________*/
-import Foundation
-public struct SequenceList<Element: Equatable> {
-    private var list: NSMutableArray
+public final class SequenceList<T> {
+    private var list = [T]()
     private(set) var count = 0
-    init(capacity: Int) {
-        list = NSMutableArray(capacity: capacity)
+}
+extension SequenceList: Sequence {
+    public func makeIterator() -> AnyIterator<T> {
+        return AnyIterator { self.list.popLast() }
     }
 }
 extension SequenceList {
-    public mutating func append(newValue: Element) {
+    public subscript(pos: Int) -> T {
+        get {
+            return getValue(at: pos)
+        }
+        set {
+            replace(newValue, at: pos)
+        }
+    }
+}
+extension SequenceList {
+    @discardableResult
+    public func getValue(at index: Int) -> T {
+        assert(index >= 0 && index < count)
+        return list[index]
+    }
+}
+extension SequenceList {
+    public func replace(_ newValue: T, at index: Int) {
+        assert(index >= 0 && index < count)
+        list[index] = newValue
+    }
+}
+extension SequenceList {
+    public func append(_ newValue: T) {
         list[count] = newValue
         count += 1
     }
-    public mutating func insert(newValue: Element, at index: Int) {
+    public func insert(_ newValue: T, at index: Int) {
         assert(index >= 0 && index <= count)
         var endIndex = count
         while index < endIndex {
@@ -29,54 +53,32 @@ extension SequenceList {
         list[index] = newValue
         count += 1
     }
-    public mutating func remove(_ value: Element) {
-        assert(list.contains(value))
-        var index = list.index(of: value)
+}
+extension SequenceList where T: Comparable {
+    public func remove(_ value: T) {
+        guard var index = list.index(of: value) else { return }
         while index < count - 1 {
             list[index] = list[index + 1]
             index += 1
         }
-        list.removeLastObject()
+        list.removeLast()
         count -= 1
-    }
-    public mutating func replace(newValue: Element, at index: Int) {
-        assert(index >= 0 && index <= count)
-        list[index] = newValue
-    }
-}
-extension SequenceList {
-    public subscript (index: Int) -> Element? {
-        get {
-            assert(index >= 0 && index <= count)
-            return list[index] as? Element
-        }
-        set {
-            newValue.map {
-                replace(newValue: $0, at: index)
-            }
-        }
     }
 }
 extension SequenceList: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: Element...) {
-        self.init(capacity: elements.count)
-        elements.forEach {
-            append(newValue: $0)
-        }
+    public convenience init(arrayLiteral elements: T...) {
+        self.init()
+        list.append(contentsOf: elements)
         count = elements.count
     }
 }
-extension SequenceList: CustomStringConvertible, CustomDebugStringConvertible {
+extension SequenceList: CustomStringConvertible {
     public var description: String {
-        return "[" + list.map { "\($0)" }.joined(separator: ", ") + "]"
-    }
-    public var debugDescription: String {
-        return list.enumerated().map { "\($0.offset) -> \($0.element)" }.joined(separator: "\n")
+        return list.map { "\($0)" }.joined(separator: "\t")
     }
 }
-var list: SequenceList = [1]
-list.append(newValue: 2)
-list.insert(newValue: 0, at: 0)
-list[0] = 1_000
-list.remove(1)
-print(list.description, list.debugDescription, separator: "\n", terminator: "\n")
+extension SequenceList: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        return list.enumerated().map { "\($0.offset)\t\($0.element)" }.joined(separator: "\n")
+    }
+}
