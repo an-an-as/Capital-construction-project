@@ -86,21 +86,14 @@ extension DoubleLinkedList {
 }
 extension DoubleLinkedList {
     public func findNode(at index: Int) -> Node {
-        assert(index > 0 && head != nil)
-        if index == 0 {
-            return head!
-        } else {
-            var node = head?.next
-            for _ in 1..<index {
-                node = node?.next
-                if node == nil {
-                    break
-                }
-            }
-            guard node != nil else { fatalError("out of range") }
-            return node!
+        assert(index > 0 && index < count)
+        var current = head
+        var initial = 0
+        while initial < index {
+            current = current?.next
+            initial += 1
         }
-    }
+        return current!
 }
 extension DoubleLinkedList {
     public func append(_ node: Node) {
