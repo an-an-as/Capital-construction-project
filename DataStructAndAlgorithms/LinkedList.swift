@@ -44,28 +44,41 @@
  
  ````
  */
-import Foundation
 enum List<Element> {
     case end
-    indirect case node(Element,next:List<Element>)
+    indirect case node(Element, List<Element>)
 }
 extension List {
-    func cons(_ value:Element) -> List<Element> {
-        return .node(value,next: self)
-        ///  1 next self-> end
+    var isEmpty: Bool {
+        if case .end = self {
+            return true
+        }
+        return false
     }
 }
 extension List {
-    mutating func push(_ value:Element) {
-        self = cons(value)
+    @discardableResult
+    func cons(_ newElement: Element) -> List<Element> {
+        return .node(newElement, self)
     }
-    mutating func pop() -> Element? {
+}
+extension List {
+    public mutating func push(_ newElement: Element) {
+        self = cons(newElement)
+    }
+    @discardableResult
+    public mutating func pop() -> Element? {
         switch self {
         case .end: return nil
-        case let .node(value,next):
-            self = next
+        case let .node(value, nextNode):
+            self = nextNode
             return value
         }
+    }
+}
+extension List: ExpressibleByArrayLiteral {
+    init(arrayLiteral elements: Element...) {
+        self = elements.reduce(.end) { $0.cons($1) }
     }
 }
 extension List: IteratorProtocol, Sequence {
@@ -73,11 +86,14 @@ extension List: IteratorProtocol, Sequence {
         return pop()
     }
 }
-extension List: ExpressibleByArrayLiteral {
-    init(arrayLiteral elements: Element...) {
-        self = elements.reversed().reduce(.end){ $0.cons($1) }
+extension List: CustomStringConvertible {
+    var description: String {
+        return self.map { "\($0)" }.joined(separator: "\t--->\t")
     }
 }
+var list: List = [1, 2]
+list.pop()
+print(list.isEmpty)
 let emptyList = List<Int>.end
 let oneElementList = List.node(1, next: emptyList)
 print(oneElementList)   ///node(1, next: List<Swift.Int>.end)
