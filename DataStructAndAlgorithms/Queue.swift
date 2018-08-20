@@ -24,7 +24,7 @@ struct FIFOQueue<Element>:Queue {
     }
 }
 
-//version1 元素非可选
+//version1
 extension FIFOQueue: MutableCollection {
     var startIndex: Int { return 0 }
     var endIndex: Int {
@@ -79,7 +79,7 @@ let out = list.deQueue() ///Optional(1)
 list.enQueue(6)
 print(list)///[2, 3, 4, 5,6]
 
-//version2 元素可选
+//version2 
 public struct Queue<T> {
     fileprivate var array = [T?]()
     fileprivate var head = 0
@@ -191,9 +191,9 @@ public struct Deque<T> {
     }
     public mutating func enqueue(_ element: T) {
         array.append(element)
-    }                                                                   ///                                       head == 0
-    public mutating func enqueueFront(_ element: T) {                   ///  [ x, x, x, x, x, x, x, x, x, x ]  + [  5, 4, 3, 2, 1 ]
-        if head == 0 {                                                  ///                               head = capacity * 2 = 10
+    }                                                                   ///                                      head == 0
+    public mutating func enqueueFront(_ element: T) {                   ///  [ x, x, x, x, x, x, x, x, x, x ]  + [ 5, 4, 3, 2, 1 ]
+        if head == 0 {                                                  ///                                      head = capacity * 2 = 10
             capacity *= 2                                               /// multiply the capacity by 2 each time 如果队列变得越来越大 改变尺寸的操作会减少 和Swift 数组相同
             let emptySpace = [T?](repeating: nil, count: capacity)
             array.insert(contentsOf: emptySpace, at: 0) ///O(n) 1次
@@ -205,12 +205,12 @@ public struct Deque<T> {
     public mutating func dequeue() -> T? {
         guard head < array.count, let element = array[head] else { return nil }
         array[head] = nil                                          ///                            head                      enqueue
-        head += 1                                                  /// enqueueFront                |        10              |  15           20
-        if capacity >= originalCapacity && head >= capacity*2 {    /// [ x, x, x, x, x, x, x, x, x, 6]  + [ 5, 4, 3, 2, 1 ] + [1,2,3,4,5] + [6,7,8,9,10,x,x,x,x,x]
+        head += 1                                                  /// enqueueFront                |        10              |  15         20
+        if capacity >= originalCapacity && head >= capacity*2 {    /// [ x, x, x, x, x, x, x, x, x, 6]  + [ 5, 4, 3, 2, 1 ] + [1,2,3,4,5, 6,7,8,9,10......]
             let amountToRemove = capacity + capacity/2             ///                   capacity = 10    origin = 5
             array.removeFirst(amountToRemove)                      ///                                                                       head:20
             head -= amountToRemove                                 ///                                                                       |
-            capacity /= 2                                          /// [ x, x, x, x, x, x, x, x, x, x]  + [ x, x, x, x, x ] + [x,x,x,x,x] + [6,7,8,9,10,x,x,x,x,x]
+            capacity /= 2                                          /// [ x, x, x, x, x, x, x, x, x, x]  + [ x, x, x, x, x ] + [x,x,x,x,x   6,7,8,9,10....]
         }                                                          ///                                                      |
         return element                                             /// capacity > 10 && head >= 2 * capacity                v 调节临界点
     }                                                              /// amountToRemove = capacity + capacity/2  = 15           对很小的数组进行微调,节省几个字节的内存是不值得的
