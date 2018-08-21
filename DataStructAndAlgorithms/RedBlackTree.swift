@@ -90,15 +90,15 @@ extension RedBlackTree {
     public func inserting(_ element: Element) -> (tree: RedBlackTree, existingMember: Element?) {
         let (tree, old) = _inserting(element)
         switch tree {
-        case let .node(.red, value, left, right):
-            return (.node(.black, value, left, right), old)
+        case let .node(.red, value, left, right):           /// 根节点染黑
+            return (.node(.black, value, left, right), old) /// 每次平衡后叶子节点为黑
         default:
             return (tree, old)
         }
     }
 }
 extension RedBlackTree {
-    func _inserting(_ element: Element) -> (tree: RedBlackTree, old: Element?){
+    func _inserting(_ element: Element) -> (tree: RedBlackTree, old: Element?) {
         switch self {
         case .empty:
             return (.node(.red, element, .empty, .empty), nil)
@@ -107,7 +107,7 @@ extension RedBlackTree {
         case let .node(color, value, left, right) where value > element:
             let (l, old) = left._inserting(element)
             if let old = old { return (self, old) }
-            return (balanced(color, value, l, right), nil)
+            return (balanced(color, value, l, right), nil)      /// l: tree
         case let .node(color, value, left, right):
             let (r, old) = right._inserting(element)
             if let old = old { return (self, old) }
@@ -118,14 +118,14 @@ extension RedBlackTree {
 extension RedBlackTree {
     func balanced(_ color: Color, _ value: Element, _ left: RedBlackTree, _ right: RedBlackTree) -> RedBlackTree {
         switch (color, value, left, right) {
-        case let (.black, z,.node(.red, y, .node(.red, x, a, b),c),d):
-            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))
-        case let (.black, z, .node(.red, x, a, .node(.red, y, b,c)),d):
-            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))
-        case let (.black, x, a, .node(.red, z, .node(.red, y, b, c), d)):
-            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))
-        case let (.black, x, a, .node(.red, y, b, .node(.red, z, c, d))):
-            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))
+        case let (.black, z,.node(.red, y, .node(.red, x, a, b),c),d):             ///        Z◯         Z◯        X◯            X◯
+            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))  ///       /  \        /  \       /  \          /  \                   Y◉
+        case let (.black, z, .node(.red, x, a, .node(.red, y, b,c)),d):            ///     Y◉   d      X◉   d     a   Y◉       a    Z◉               /   \
+            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))  ///     /  \        / \             /  \           / \    ----->   X◯    Z◯
+        case let (.black, x, a, .node(.red, z, .node(.red, y, b, c), d)):          ///   X◉   c      a   Y◉          b   Z◉       Y◉   d           /  \   /  \
+            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))  ///   / \              / \              / \      / \              a   b  c   d
+        case let (.black, x, a, .node(.red, y, b, .node(.red, z, c, d))):          ///  a   b            b   c            c   d    b   c
+            return .node(.red, y, .node(.black, x, a, b), .node(.black, z, c, d))  ///
         default:
             return .node(color, value, left, right)
         }
@@ -246,3 +246,5 @@ print(tree)
 /// 我们无法访问 Swift 用来包装节点的私有引用类型，因此也就无法获知某个特定节点是不是只有单一引用。(编译器自己还不够聪明，它也并不能帮我们做写时复制优化。)
 /// 同时，想要直接获取一个枚举成员里的值，我们也只能先提取一份它的单独的复制。(注意，与此不同，Optional 通过强制解包运算符 !，提供了直接访问存储的值的方式。
 /// 然而，为枚举类型提供类似的原地访问的工具只能被使用在标准库中，在标准库外它们是不可用的。
+
+
