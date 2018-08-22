@@ -387,44 +387,36 @@ print(list2)
 /********************************************  VERSION 2  *************************************************************************/
 public struct SinglyLinkedList<T> {
     private var storage: IndirectStorage<T>
-    init() {
-        storage = IndirectStorage()
-    }
 }
 extension SinglyLinkedList {
-    internal class Node<T> {
+    class Node<T> {
         var value: T
         var next: Node?
         init(value: T) {
             self.value = value
         }
     }
-}
-extension SinglyLinkedList {
-    private class IndirectStorage<T> {
+    class IndirectStorage<T> {
         var head: Node<T>?
         var tail: Node<T>?
         init(head: Node<T>?, tail: Node<T>?) {
             self.head = head
             self.tail = tail
         }
-        convenience init() {
-            self.init(head: nil, tail: nil)
-        }
     }
 }
 extension SinglyLinkedList {
-    private var storageForWritting: IndirectStorage<T> {
+    private var storageForWriting: IndirectStorage<T> {
         mutating get {
             func copyStorage() -> IndirectStorage<T> {
                 guard storage.head != nil && storage.tail != nil else {
-                    return IndirectStorage()
+                    return IndirectStorage(head: nil, tail: nil)
                 }
-                let copiedHead = Node<T>(value: storage.head!.value)
+                let copiedHead = Node(value: storage.head!.value)
                 var previousCopied = copiedHead
                 var current = storage.head?.next
                 while current != nil {
-                    let currentCopied = Node<T>(value: current!.value)
+                    let currentCopied = Node(value: current!.value)
                     previousCopied.next = currentCopied
                     previousCopied = currentCopied
                     current = current?.next
@@ -438,64 +430,45 @@ extension SinglyLinkedList {
         }
     }
 }
-extension SinglyLinkedList {
-    internal func findTailInNode(node: Node<T>) -> (tail: Node<T>, count: Int) {
-        var current = node
-        var count = 1
-        while let nextNode = current.next {
-            current = nextNode
-            count += 1
+extension SinglyLinkedList where T: Comparable {
+    private mutating func appendNode(node: Node<T>?) {
+        if storage.tail != nil {
+            storageForWriting.tail?.next = node
+        } else {
+            storageForWriting.head = node
         }
-        return (current, count)
+        storageForWriting.tail = node
+    }
+    private mutating func prepend(node: Node<T>) {
+        node.next = storageForWriting.head
+        storageForWriting.head = node
+        if storage.tail == nil {
+            storageForWriting.tail = node
+        }
+    }
+    public mutating func append(_ newValue: T) {
+        let node = Node(value: newValue)
+        appendNode(node: node)
+    }
+    public mutating func prepend(_ newValue: T) {
+        let node = Node(value: newValue)
+        prepend(node: node)
     }
 }
 extension SinglyLinkedList {
-    public mutating func append(_ value: T) {
-        appendNode(newNode: Node(value: value))
-    }
-    public mutating func prepend(_ value: T) {
-        prependNode(newNode: Node(value: value))
-    }
-    private mutating func appendNode(newNode: Node<T>) {
-        let lastNodeTail = findTailInNode(node: newNode).tail
-        if storageForWritting.tail == nil {
-            storageForWritting.head = newNode
-        } else {
-            storageForWritting.tail?.next = newNode
+    func findNode(_ index: Int) -> Node<T>? {
+        guard storage.head != nil else { return nil }
+        var current = storage.head
+        var initial = 0
+        while initial < index {
+            current = current?.next
+            initial += 1
         }
-        storageForWritting.tail = lastNodeTail
-    }
-    private mutating func prependNode(newNode: Node<T>) {
-        let tailNode = findTailInNode(node: newNode).tail
-        tailNode.next = storageForWritting.head
-        storageForWritting.head = newNode
-        if storage.tail == nil {
-            storageForWritting.tail = tailNode
-        }
+        return current == nil ? nil : current
     }
 }
 extension SinglyLinkedList where T: Comparable {
-    public mutating func remove(at index: Int) -> T? {
-        assert (index > 0 && index < findTailInNode(node: storage.head!).count)
-        var initial = 0
-        var previous: Node<T>?
-        var currnet = storageForWritting.head
-        while initial < index {
-            previous = currnet
-            currnet = currnet?.next
-            initial += 1
-        }
-        if storage.head === currnet {
-            storageForWritting.head = currnet?.next
-        }
-        if storage.tail === currnet {
-            storageForWritting.tail = previous
-        }
-        previous?.next = currnet?.next
-        return currnet!.value
-    }
-    @discardableResult
-    public mutating func remove(_ value: T) -> T? {
+    public mutating func remove(_ value: T) {
         var previous: Node<T>?
         var current = storage.head
         while current != nil && current?.value != value {
@@ -504,59 +477,63 @@ extension SinglyLinkedList where T: Comparable {
         }
         if let found = current {
             if storage.head === found {
-                storageForWritting.head = found.next
+                storageForWriting.head = found.next
             }
             if storage.tail === found {
-                storageForWritting.tail = previous
+                storageForWriting.tail = previous
             }
             previous?.next = found.next
             found.next = nil
-            return found.value
         }
-        return nil
     }
 }
 public struct ListIndex<T>: Comparable {
     fileprivate var node: SinglyLinkedList<T>.Node<T>?
     fileprivate var tag: Int
-    static public func == <T> (lhs: ListIndex<T>, rhs: ListIndex<T>) -> Bool {
+    public static func == <T>(lhs: ListIndex<T>, rhs: ListIndex<T>) -> Bool {
         return lhs.tag == rhs.tag
     }
-    static public func < <T> (lhs: ListIndex<T>, rhs: ListIndex<T>) -> Bool {
+    public static func < <T>(lhs: ListIndex<T>, rhs: ListIndex<T>) -> Bool {
         return lhs.tag < rhs.tag
     }
 }
 extension SinglyLinkedList: Collection {
     public typealias Index = ListIndex<T>
-    public var startIndex: Index {
-        return Index(node: storage.head, tag: 0)
+    public var startIndex: ListIndex<T> {
+        return ListIndex(node: storage.head!, tag: 0)
     }
-    public var endIndex: Index {
-        if let headNode = storage.head {
-            return Index(node: storage.head, tag: findTailInNode(node: headNode).count)
+    public var endIndex: ListIndex<T> {
+        if storage.head != nil {
+            var current = storage.head
+            var count = 1
+            while current?.next != nil {
+                count += 1
+                current = current?.next
+            }
+            return ListIndex(node: storage.head, tag: count)
         } else {
-            return Index(node: nil, tag: startIndex.tag)
+            return ListIndex(node: nil, tag: 0)
         }
     }
-    public func index(after index: Index) -> Index {
-        return Index(node: index.node?.next, tag: index.tag + 1)
+    public func index(after index: ListIndex<T>) -> ListIndex<T> {
+        return ListIndex(node: index.node?.next, tag: index.tag + 1)
     }
     public subscript(pos: Index) -> T {
         return pos.node!.value
     }
 }
 extension SinglyLinkedList: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: T...) {
-        var headSetted = false
+    public init(arrayLiteral elements: Element...) {
+        self.init(storage: IndirectStorage(head: nil, tail: nil))
+        var headSeted = false
         var current: Node<T>?
-        self.init()
         elements.forEach {
-            if headSetted == false {
-                storage.head = Node(value: $0)
+            if headSeted == false {
+                storage.head = Node<T>(value: $0)
                 current = storage.head
-                headSetted = true
+                headSeted = true
             } else {
-                let newNode = Node(value: $0)
+                let newNode = Node<T>(value: $0)
                 current?.next = newNode
                 current = newNode
             }
@@ -564,8 +541,8 @@ extension SinglyLinkedList: ExpressibleByArrayLiteral {
         storage.tail = current
     }
 }
-extension SinglyLinkedList: CustomStringConvertible {
-    public var description: String {
+extension SinglyLinkedList: CustomDebugStringConvertible {
+    public var debugDescription: String {
         var current = storage.head
         var temp = [T]()
         while current != nil {
@@ -576,22 +553,14 @@ extension SinglyLinkedList: CustomStringConvertible {
     }
 }
 extension Sequence where Element: Hashable {
-    public func selectDistinct() -> [Element] {
+    func selectDistainct() -> [Element] {
         var tempSet = Set<Element>()
-        return self.filter { tempSet.insert($0).inserted }
+        return filter { tempSet.insert($0).inserted }
     }
 }
-var list: SinglyLinkedList = [1, 2, 3]
-list.append(4)
-list.append(4)
-print(list.selectDistinct())
-
-
-
-
-
-
-
-
-
-
+var list: SinglyLinkedList = [1, 2, 3, 4, 5]
+list.append(5)
+list.remove(2)
+print(list.findNode(0)?.value)
+let result = list.selectDistainct()
+print(result)
