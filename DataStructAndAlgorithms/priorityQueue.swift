@@ -16,172 +16,147 @@
  ## Searching
  + Heap的主要特性是根节点为最大最小值,并且拥有O(long n)的插入和删除的特性,搜索不是它的主要任务
  + Whereas searching is fast in a binary tree, it is slow in a heap.
+ 
+ 
+ 
+ ````
+        4            0               arr [4,6,8,5,9]        for i in stride(from: (nodes.count/2-1), through: 0, by: -1){}  确定最后非叶子结点
+      /   \         / \                   0 1 2 3 4         如果下标从1开始存储，则编号为i的结点的主要关系为： 父i/2         左2i  右2i+1
+    >6<    8       1   2                                    如果下标从0开始存储，则编号为i的结点的主要关系为： (i - 1) / 2   2i+1  2i+2     [(i-1)-1/2] = i/2 -1
+    / \           / \
+   5   9         3   4                                      假设设完全二叉树中第i个结点的位置为第k层第M个结点，
+                                                            根据二叉树的特性，满二叉树的第K层共有2^K-1个节点
+                                                            则父节点为全二叉树的第t=2^(K-2)-1+M个节点。子节点为全二叉树的第i=2^(K-1)-1+2M。即父结点编号为t=(i-1)/2=i/2。
+                                                            若 2层 父节点t =  m    子节点i = 1 + 2m
+ ````
+ 
+ 
+ ## 从最后一个非叶子结点开始,从下至上,从左至右,进行调整 9 - 6
+ 
+ ````
+ 
+      4                                   9                                       9
+    /   \                                / \                                     / \
+   9     8            ---->             4   8                 ---->             6   8
+  / \                                  / \                                     / \
+ 5   6                                5   6                                   5   4
+ arr [4,9,8,5,6]                      arr [9,4,8,5,6]                         arr[9,6,8,5,4]
+ 
+ ````
+ 
+ 
+ ## 将堆顶元素与末尾元素进行交换，使末尾元素最大
+ 
+ ````
+     4                                   8                               5
+    / \                                 / \                             / \
+   6   8             ----->            6   4             ---->         6   4
+  /                  重新调整          /                  首位交换      [8][9]
+ 5  [9]                              5  [9]
+ arr[4,6,8,5,|9]                     arr[8,6,4,5,|9]                 -> arr[4,5,6,8,9]
+ 
+ ````
  */
-import Foundation
 public struct Heap<T> {
-    var nodes = [T]()
-    private var criteria: (T, T) -> Bool
-    public init(sort: @escaping(T, T) -> Bool) {
+    private var nodes = [T]()
+    var criteria: (T, T) -> Bool
+    init(sort: @escaping (T, T) -> Bool) {
         criteria = sort
-    }
-    public init(_ arr: [T], _ sort: @escaping(T, T) -> Bool) {
-        criteria = sort
-        transformIntoCompleteBinaryTree(for: arr)
-    }
-    public var isEmpty: Bool {
-        return nodes.isEmpty
-    }
-    public var count: Int {
-        return nodes.count
-    }
-    public func peek() -> T? {
-        return nodes.first
     }
 }
 extension Heap {
-    ///-complexity: O(n)
-    mutating func transformIntoCompleteBinaryTree(for arr: [T]) {
-        nodes = arr
-        for index in stride(from: nodes.count/2 - 1, through: 0, by: -1) {
-            shiftDown(index)
-        }
-    }
-    @inline(__always) func parentIndex(of index: Int) -> Int {
+    @inline(__always) private func parentIndex(of index: Int) -> Int {
         return (index - 1) / 2
     }
-    @inline(__always) func leftChildrenIndex(of index: Int) -> Int {
-        return index * 2 + 1
-    }
-    @inline(__always) func rightChildrenIndex(of index: Int) -> Int {
-        return index * 2 + 2
+}
+extension Heap {
+    private mutating func shiftDown(from index: Int, to endIndex: Int) {
+        var currentIndex = index
+        let leftChildrenIndex = index * 2 + 1
+        let rightChildrenIndex = leftChildrenIndex + 1
+        if leftChildrenIndex < endIndex && criteria(nodes[leftChildrenIndex], nodes[currentIndex]) {
+            currentIndex = leftChildrenIndex
+        }
+        if rightChildrenIndex < endIndex && criteria(nodes[rightChildrenIndex], nodes[currentIndex]) {
+            currentIndex = rightChildrenIndex
+        }
+        if currentIndex == index { return }
+        nodes.swapAt(currentIndex, index)
+        shiftDown(from: currentIndex, to: endIndex)
     }
 }
 extension Heap {
-    mutating func shiftDown(_ index: Int) {
-        shiftDown(from: index, to: nodes.count - 1)
-    }
-    ///-complexity: O(log n)
-    mutating func shiftDown(from index: Int, to endIndex: Int) {
-        let childIndexL = leftChildrenIndex(of: index)
-        let childIndexR = childIndexL + 1
-        var cursor = index
-        if childIndexL < endIndex && criteria(nodes[childIndexL], nodes[cursor]) {
-            cursor = childIndexL
+    private mutating func shiftUp(from index: Int) {
+        var currentIndex = index
+        var parentIndex = self.parentIndex(of: currentIndex)
+        let value = nodes[index]
+        while currentIndex > 0 && criteria(value, nodes[parentIndex]) {
+            nodes[currentIndex] = nodes[parentIndex]
+            currentIndex = parentIndex
+            parentIndex = self.parentIndex(of: currentIndex)
         }
-        if childIndexR < endIndex && criteria(nodes[childIndexR], nodes[cursor]) {
-            cursor = childIndexR
-        }
-        if cursor == index { return }
-        nodes.swapAt(index, cursor)
-        shiftDown(from: cursor, to: endIndex)
-    }
-    ///-complexity: O(log n)
-    mutating func shiftUp(_ index: Int) {
-        var cursor = index
-        let element = nodes[index]
-        var parentIndex = self.parentIndex(of: cursor)
-        while cursor > 0 && criteria(element, nodes[parentIndex]) {
-            nodes[cursor] = nodes[parentIndex]
-            cursor = parentIndex
-            parentIndex = self.parentIndex(of: cursor)
-        }
-        nodes[cursor] = element
+        nodes[currentIndex] = value
     }
 }
 extension Heap {
-    ///-complexity: O(log n)
     public mutating func insert(_ newElement: T) {
         nodes.append(newElement)
-        shiftUp(nodes.count - 1)
-    }
-    ///-complexity: O(log n)
-    public mutating func insert<S: Sequence> (_ sequence: S) where S.Iterator.Element == T {
-        for element in sequence {
-            insert(element)
-        }
+        shiftUp(from: nodes.count - 1)
     }
 }
 extension Heap {
-    ///-complexity: O(log n)
-    public mutating func remove() -> T? {
-        guard !nodes.isEmpty else { return nil }
+    public mutating func removeFirst() -> T? {
         if nodes.count == 1 {
-            return nodes.removeLast()
+            return nodes.popLast()
         } else {
-            let value = nodes[0]
-            shiftDown(0)
+            let first = nodes[0]
             nodes[0] = nodes.removeLast()
-            return value
+            shiftDown(from: 0, to: nodes.count)
+            return first
         }
     }
     @discardableResult
-    ///-complexity: O(log n)
     public mutating func remove(at index: Int) -> T? {
         guard index < nodes.count else { return nil }
-        let last = nodes.count - 1
-        if index != last {
-            nodes.swapAt(index, nodes.count - 1)
-            shiftUp(index)
-            shiftDown(from: index, to: last)
+        let lastIndex = nodes.count - 1
+        if index != lastIndex {
+            nodes.swapAt(index, lastIndex)
+            shiftUp(from: index)
+            shiftDown(from: index, to: lastIndex)
         }
         return nodes.removeLast()
     }
 }
 extension Heap {
-    mutating func replace(_ newElement: T, at index: Int) {
+    public mutating func replace(newElement: T, at index: Int) {
         guard index < nodes.count else { return }
         remove(at: index)
         insert(newElement)
     }
 }
 extension Heap where T: Equatable {
-    ///-complexity: O(n)
-    func index(_ node: T) -> Int? {
-        return nodes.index(where: { $0 == node})
-    }
-    ///-complexity: O(log n)
-    mutating func  remove(_ node: T) -> T? {
-        if let index = index(node) {
-            remove(at: index)
-        }
-        return nil
+    public mutating func index(of element: T) -> Int? {
+        return nodes.index(where: { $0 == element })
     }
 }
-public struct PriorityQueue<T> {
-    fileprivate var heap: Heap<T>
-    ///To create a max-priority queue, supply a > sort function. For a min-priority queue, use <.
-    public init(sort: @escaping (T, T) -> Bool) {
+public struct PriorityQueue<T: Equatable> {
+    private var heap: Heap<T>
+    public init(sort: @escaping(T, T) -> Bool) {
         heap = Heap(sort: sort)
     }
-    public var isEmpty: Bool {
-        return heap.isEmpty
-    }
-    public var count: Int {
-        return heap.count
-    }
-    public func peek() -> T? {
-        return heap.peek()
-    }
-    public mutating func enqueue(_ element: T) {
-        heap.insert(element)
+    public mutating func enqueue(_ newElement: T) {
+        heap.insert(newElement)
     }
     public mutating func dequeue() -> T? {
-        return heap.remove()
-    }
-    public mutating func changePriority(at index: Int, value: T) {
-        return heap.replace(value, at: index)
+        return heap.removeFirst()
     }
 }
-extension PriorityQueue where T: Equatable {
-    public func index(of element: T) -> Int? {
-        return heap.index(element)
-    }
+
+struct Message {
+    var message: String
+    var priority: Int
 }
-struct Message: Comparable {
-    let text: String
-    let priority: Int
-}
-extension Message {
+extension Message: Comparable {
     static func < (lhs: Message, rhs: Message) -> Bool {
         return lhs.priority < rhs.priority
     }
@@ -189,14 +164,8 @@ extension Message {
         return lhs.priority == rhs.priority
     }
 }
-
-var queue = PriorityQueue<Message>(sort: >)
-queue.enqueue(Message(text: "hello", priority: 100))
-queue.enqueue(Message(text: "world", priority: 200))
-print(queue.count,queue.isEmpty,queue.peek(), separator: "\t", terminator: "\n")
-///   2           false         Optional(Message(text: "hello", priority: 200))
-print(queue.peek()?.priority)
-///Optional(200)
-print(queue.dequeue()?.priority)
-///Optional(200)
-
+var priorityQueue = PriorityQueue<Message>(sort: >)
+priorityQueue.enqueue(Message(message: "Hello", priority: 0))
+priorityQueue.enqueue(Message(message: "World", priority: 1_000))
+priorityQueue.enqueue(Message(message: "!", priority: 500))
+print(priorityQueue.dequeue()?.message) //Optional("World")
