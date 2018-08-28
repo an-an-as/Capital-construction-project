@@ -198,21 +198,24 @@ nums.sort(by: >)
 // partition
 var nums = [3,2,5,0,1,4]
 let partition = nums.partition(by: { $0 < 3 })
-nums[0..<partition] /// [3, 4, 5]
+let partition = nums.partition(by: { $0 == 3 }) //  nums[0..<partition] -> [4, 2, 5, 0, 1] partion: 5
+nums[0..<partition] /// [3, 4, 5] 去掉 <3 的部分
 nums[partition..<nums.endIndex] /// [0, 1, 2]
 ///重排数组,根据条件的分界点,前半部分的元素都不满足指定条,后半部分都满足指定条件
 
 // joined
 /// Descript:func joined(separator: String = default) -> String   an array of strings can be joined to a single
 let cast = ["Vivien", "Marlon", "Kim", "Karl"]
-let list = cast.joined(separator: "-")
-let arr = list.split(separator: "-")
+let str = cast.joined(separator: "-")  ///数组内字符串元素重新组合成字符串 可添加分隔符 Vivien-Marlon-Kim-Karl
+let list = str.split(separator: "-")   ///讲字符串按照其分隔符加入数组 ["Vivien", "Marlon", "Kim", "Karl"]
 
 // drop
 var arr = [1,3,4]
 arr.dropFirst
 arr.dropLast
 let newArr = arr.drop(while: { $0 == 1 })
+let newArr = arr.drop(while: { $0 < 4 }) // newArr: ArraySlice<Int>
+print(newArr) // [4]
 /// Once the predicate returns false it will not be called again 判断开头是否是1 true 返回剩余部分 false 返回原数组 
 
 
@@ -249,6 +252,8 @@ extension Array {
 extension Sequence {
     public func all(matching predicate: (Element) -> Bool) -> Bool {
         return !contains { !predicate($0) }
+        /// contains { predicate($0) } 遍历到符合条件的 predicate -> true 立即 true
+        /// contains { !predicate($0)} 遍历到符合条件的 ! predicate -> false 继续遍历最后返回false  取反全部符合
     }
 }
 let nums = [1,2,3,4,5,6,7,8,9,10]
