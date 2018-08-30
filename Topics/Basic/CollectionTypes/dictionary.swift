@@ -2,7 +2,6 @@
 ///存储无序的相同类型数据的集合,键值唯一
 var namesOfIntegers = [Int: String]()
 
-
 /**************************   Creating a Dictionary with a Dictionary Literal   **************************/
 var airports: [String: String] = ["YYZ": "Toronto Pearson", "DUB": "Dublin"]
 var airports = ["YYZ": "Toronto Pearson", "DUB": "Dublin"]
