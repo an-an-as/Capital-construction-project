@@ -10,99 +10,89 @@
  
   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 public struct HashTable<Key: Hashable, Value> {
-    private typealias Element = (key: Key, value: Value)
-    private typealias Bucket = [Element]
-    private var buckets: [Bucket]
-    private(set) var count = 0
-    init(capacity: Int) {
-        buckets = [Bucket](repeating: [], count: capacity)
-    }
+    private typealias Box = (boxTab: Key, data: Value)
+    private typealias Drawer = [Box]
+    private var storage: [Drawer]
+    private(set) var count: Int
 }
 extension HashTable {
-    public var isEmpty: Bool {
+    var isEmpty: Bool {
         return count == 0
     }
-}
-extension HashTable {
-    public subscript(key: Key) -> Value? {
+    init(capacity: Int) {
+        storage = [Drawer](repeating: [], count: capacity)
+        count = 0
+    }
+    public subscript(boxTab: Key) -> Value? {
         get {
-            return getValue(by: key)
+            let drawerIndex = self.index(of: boxTab)
+            for box in storage[drawerIndex] where box.boxTab == boxTab {
+                return box.data
+            }
+            return nil
         }
         set {
-            if let newValue = newValue {
-                updateValue(key: key, newValue: newValue)
+            if let newData = newValue {
+                _ = updateValue(boxTab: boxTab, newData: newData)
             } else {
-                remove(key)
+                _ = remove(boxTab)
             }
         }
     }
 }
 extension HashTable {
-    public func getValue(by key: Key) -> Value? {
-        let index = self.index(of: key)
-        for element in buckets[index]  where element.key == key {
-            return element.value
-        }
-        return nil
-    }
-}
-extension HashTable {
-    @discardableResult
-    public mutating func updateValue(key: Key, newValue: Value) -> Value? {
-        let index = self.index(of: key)
-        for (cursor, element) in buckets[index].enumerated() where element.key == key {
-            let oldValue = element.value
-            buckets[index][cursor].value = newValue
+    mutating func updateValue (boxTab: Key, newData: Value) -> Value? {
+        let drawerNum = index(of: boxTab)
+        for (boxNum, items) in storage[drawerNum].enumerated() where items.boxTab == boxTab {
+            let oldValue = items.data
+            storage[drawerNum][boxNum].data = newData
             return oldValue
         }
-        buckets[index].append((key: key, value: newValue))
+        storage[drawerNum].append((boxTab: boxTab, data: newData))
         count += 1
         return nil
     }
-    @discardableResult
-    public mutating func remove(_ key: Key) -> Value? {
-        let index = self.index(of: key)
-        for (cursor, element) in buckets[index].enumerated() where element.key == key {
-            buckets[index].remove(at: cursor)
+}
+extension HashTable {
+    mutating func remove(_ boxTab: Key) -> Value? {
+        let drawerIndex = index(of: boxTab)
+        for (boxIndex, content) in storage[drawerIndex].enumerated() where content.boxTab == boxTab {
+            let value = content.data
+            storage[drawerIndex].remove(at: boxIndex)
             count -= 1
+            return value
         }
         return nil
     }
-    public mutating func removeAll() {
-        buckets = [Bucket](repeating: [], count: 0)
-    }
 }
 extension HashTable {
-    private func index(of key: Key) -> Int {
-        return Swift.abs(key.hashValue) % buckets.count
+    private func index(of drawer: Key) -> Int {
+        return Swift.abs(drawer.hashValue) % storage.count
     }
 }
 extension HashTable: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (Key, Value)...) {
         self.init(capacity: elements.count)
-        self.count = elements.count
+        count = elements.count
         elements.forEach {
-            updateValue(key: $0.0, newValue: $0.1)
+            _ = updateValue(boxTab: $0.0, newData: $0.1)
         }
-    }
-}
-extension HashTable: CustomStringConvertible {
-    public var description: String {
-        return buckets.flatMap { bucket in
-            bucket.map { "\($0.key): \($0.value)" }
-            }.joined(separator: "\t")
     }
 }
 extension HashTable: CustomDebugStringConvertible {
     public var debugDescription: String {
         var str = ""
-        for (index, element) in buckets.enumerated() {
-            let bucketContent = element.map { "\($0.key): \($0.value)" }.joined(separator: "\t")
-            str += "\(index)\t" + bucketContent + "\n"
+        for (drawerIndex, boxs) in storage.enumerated() {
+            let items = boxs.map { "\($0.boxTab): \($0.data)"}
+            str += "DraerNum:\(drawerIndex) " + items.joined(separator: ", ") + "\n"
         }
         return str
     }
 }
+var list: HashTable = ["足球": 10, "篮球": 20, "排球": 30]
+list["rugby"] = 50
+list["篮球"] = nil
+print(list.debugDescription)
 
 /// Test
 #if swift(>=4.0)
