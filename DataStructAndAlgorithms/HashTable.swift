@@ -73,7 +73,6 @@ extension HashTable {
 extension HashTable: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (Key, Value)...) {
         self.init(capacity: elements.count)
-        count = elements.count
         elements.forEach {
             _ = updateValue(boxTab: $0.0, newData: $0.1)
         }
