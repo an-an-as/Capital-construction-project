@@ -96,7 +96,7 @@ public struct Queue<T> {
         guard head < array.count, let element = array[head] else { return nil }     /// 0   1   2   |
         array[head] = nil                                                           /// nil nil nil 4 5
         head += 1                                                                   /// head / array.count = 3/5 = 0.6 > 0.25
-        let percentage = Double(head)/Double(array.count)                           /// array.remove(3)
+        let percentage = Double(head)/Double(array.ccount)                           /// array.remove(3)
         if array.count > 50 && percentage > 0.25 {                                  /// [4,5]
             array.removeFirst(head)
             head = 0
