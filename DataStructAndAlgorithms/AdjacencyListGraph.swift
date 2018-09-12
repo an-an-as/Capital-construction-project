@@ -1,4 +1,4 @@
-/**
+v/**
  | Operation       | Adjacency List | Adjacency Matrix |
  |-----------------|----------------|------------------|
  | Storage Space   | O(V + E)       | O(V^2)           |
@@ -72,7 +72,7 @@ struct AdjacencyListGraph<T> where T: Hashable {         /// adjacencyList      
         }
         return vertices
     }
-    var edges: [Edge<T>] {
+    var edges: [Edge<T>] { 
         var allEdges = Set<Edge<T>>()
         for edgeList in adjacencyList {
             guard let edges = edgeList.edges else {
@@ -150,3 +150,83 @@ graph.addDirectedEdge(b, to: c, withWeight: 2.0)
 graph.addDirectedEdge(a, to: c, withWeight: -5.5)
 
 print(graph.description)
+/*******version 2**********/
+public struct AdjacencyListGraph<T: Hashable> {
+    private var list = [AdjacencyList<T>]()
+}
+extension AdjacencyListGraph {
+    public struct Vertex<T: Hashable>: Equatable {
+        var data: T
+        var index: Int
+    }
+    public struct Edge<T: Hashable>: Equatable {
+        var vertexFrom: Vertex<T>
+        var vertexTo: Vertex<T>
+        var weight: Double?
+    }
+}
+extension AdjacencyListGraph {
+    private class AdjacencyList<T: Hashable> {
+        var vertex: Vertex<T>
+        var edges: [Edge<T>]?
+        init(vertex: Vertex<T>) {
+            self.vertex = vertex
+        }
+        func append(_ newEdge: Edge<T>) {
+            self.edges?.append(newEdge)
+        }
+    }
+}
+extension AdjacencyListGraph {
+    public var vertices: [Vertex<T>] {
+        return list.map { $0.vertex }
+    }
+    public var edges: [Edge<T>] {
+        var temp = [Edge<T>]()
+        for edgeList in list {
+            guard edgeList.edges != nil else { continue }
+            for currentEdge in edgeList.edges! {
+                temp.append(currentEdge)
+            }
+        }
+        return temp
+    }
+}
+extension AdjacencyListGraph {
+    mutating func createVertex(_ data: T) -> Vertex<T> {
+        let matching = vertices.filter { $0.data == data }
+        if matching.count > 0 {
+            return matching.last!
+        }
+        let newVertex = Vertex(data: data, index: list.count)
+        list.append(AdjacencyList(vertex: newVertex))
+        return newVertex
+    }
+}
+extension AdjacencyListGraph {
+    mutating func addDirectEdge(source: Vertex<T>, destination: Vertex<T>, weight: Double?) {
+        let newEdge = Edge(vertexFrom: source, vertexTo: destination, weight: weight)
+        let currentList = list[source.index]
+        if currentList.edges != nil {
+            currentList.append(newEdge)
+        } else {
+            currentList.edges = [newEdge]
+        }
+    }
+}
+extension AdjacencyListGraph {
+    func getWeight(source: Vertex<T>, destination: Vertex<T>) -> Double? {
+        guard let edgeList = list[source.index].edges else { return nil }
+        for currentEdge in edgeList where currentEdge.vertexTo == destination {
+            return currentEdge.weight
+        }
+        return nil
+    }
+}
+var graph = AdjacencyListGraph<String>()
+let targetA = graph.createVertex("A")
+let targetB = graph.createVertex("B")
+let targetC = graph.createVertex("C")
+graph.addDirectEdge(source: targetA, destination: targetB, weight: 100)
+graph.addDirectEdge(source: targetA, destination: targetC, weight: 200)
+print(graph.getWeight(source: targetA, destination: targetC))
