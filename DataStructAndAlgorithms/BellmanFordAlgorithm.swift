@@ -221,8 +221,8 @@ extension BellmanFord: SSSPAlgorithm {
                 let weight = edge.weight!       ///     z --> s: 2   z --> x: 7
                 let relaxedDistance = weights[edge.vertexFrom.index] + weight   /// 松弛计算  s的值 加上 权重
                 let vertextToIndex = edge.vertexTo.index                        /// 如果relaxedDistance < t 找到了一条通向t点更短的路线 更新t 的值 分拣出到t的前驱
-                if relaxedDistance < weights[vertextToIndex] {                  /// 0    1    2     3    4
-                    predecessors[vertextToIndex] = edge.vertexFrom.index        /// s    t    x     y    z
+                if relaxedDistance < weights[vertextToIndex] {                  /// 0    1    2     3    4  <-vertexToIndex     predecessprs[edge.vertexTo.index]
+                    predecessors[vertextToIndex] = edge.vertexFrom.index        /// s    t    x     y    z  <-vertexFromIndex
                     weights[vertextToIndex] = relaxedDistance                   /// weight[infi,infi,infi,infi.infi]
                     weightsUpdated = true                                       /// predecessors[nil.nil,nil.nil.nil]
                 }                                                               /// traver edges  $0.weight   weight[s.index] + 6 < weight[t.index] infi
@@ -230,10 +230,9 @@ extension BellmanFord: SSSPAlgorithm {
             guard weightsUpdated else {  break  }                               /// update
         }
         for edge in edges where weights[edge.vertexTo.index] > weights[edge.vertexFrom.index] + edge.weight! { return nil }
-        ///边权可正可负(如有负权回路nil)
-        return BellmanFordResult(predecessors: predecessors, weights: weights)
-    }
-}
+        return BellmanFordResult(predecessors: predecessors, weights: weights)  /// 边权可正可负(如有负权回路nil)
+    }                                                                           /// 0   1   2   3   4 vertexToIndex
+}                                                                               /// 6
 public struct BellmanFordResult<T> where T: Hashable {
     fileprivate var predecessors: [Int?]
     fileprivate var weights: [Double]
@@ -248,13 +247,12 @@ extension BellmanFordResult: SSSPResult {
         guard weights[to.index] != Double.infinity else { return nil }
         guard let path = recursePath(to: to, inGraph: graph, path: [to]) else { return nil }
         return path.map { vertex in return vertex.data }
-    }
     /// vertextToIndex = edge.vertexTo.index
     /// predecessors[vertextToIndex] = edge.vertexFrom.index  通过B的下标返回A的下标 目标节点to 的前驱下标from = predecessor[to.index]-> 得出前驱节点 vertices[from]
     fileprivate func recursePath(to: Vertex<T>, inGraph graph: AbstractGraph<T>, path: [Vertex<T>]) -> [Vertex<T>]? {
         guard let predecessorIdx = predecessors[to.index] else { return nil } /// 目标to 在vertices中的index 通过递归从后往前
-        let predecessor = graph.vertices[predecessorIdx]                                              /// vertices   [0,index ]
-        if predecessor.index == to.index { return [ to ]}  ///                                            predecesspr[0,to.index ] 两个数组count相同 =vertices.count
+        let predecessor = graph.vertices[predecessorIdx]                      /// vertices   [0,index ]
+        if predecessor.index == to.index { return [ to ]}                     /// predecesspr[0,to.index ] 两个数组count相同 =vertices.count
         guard let buildPath = recursePath(to: predecessor, inGraph: graph, path: path) else { return nil }
         return buildPath + [ to ]
     }
@@ -280,8 +278,116 @@ graph.addDirectedEdge(z, to: x, withWeight: 7)   ///
 let result = BellmanFord<String>.apply(graph, source: s)!
 let path = result.path(to: z, inGraph: graph)
 print(path)
+
 var arr = [Double](repeatElement(Double.infinity, count: 10))
 let flag = arr[0] + 1 < arr[1] // false
 let flag2 = arr[0] == arr[1]   // true
 print(flag2)
-
+/***************** version2 ****************/
+    public struct Vertex<T: Hashable>: Equatable {
+        var data: T
+        var indexInMarix: Int
+    }
+    public struct Edge<T: Hashable>: Equatable {
+        var vertexFrom: Vertex<T>
+        var vartexTo: Vertex<T>
+        var weight: Double?
+    }
+    public struct AdjacencyMatrixGraph<T: Hashable>: Equatable {
+        typealias ColumnVertices = [Double?]
+        var matrix = [ColumnVertices]()
+        var vertices = [Vertex<T>]()
+    }
+    extension AdjacencyMatrixGraph {
+        var edges: [Edge<T>] {
+            var temp = [Edge<T>]()
+            for columnIndex in 0..<matrix.count {
+                for rowIndex in 0..<matrix.count {
+                    if let weight = matrix[columnIndex][rowIndex] {
+                        temp.append(Edge(vertexFrom: vertices[columnIndex], vartexTo: vertices[rowIndex], weight: weight))
+                    }
+                }
+            }
+            return temp
+        }
+    }
+    extension AdjacencyMatrixGraph {
+        mutating func createVertex(_ newValue: T) -> Vertex<T> {
+            let matchingVertex = vertices.filter { $0.data == newValue }
+            if matchingVertex.count > 0 {
+                return matchingVertex.last!
+            }
+            for columnIndex in 0..<matrix.count {
+                matrix[columnIndex].append(nil)
+            }
+            let newVertex = Vertex(data: newValue, indexInMarix: matrix.count)
+            let newRow = ColumnVertices(repeating: nil, count: matrix.count + 1)
+            vertices.append(newVertex)
+            matrix.append(newRow)
+            return newVertex
+        }
+    }
+    extension AdjacencyMatrixGraph {
+        mutating func addDirectEdge(lhs: Vertex<T>, rhs: Vertex<T>, weight: Double?) {
+            matrix[lhs.indexInMarix][rhs.indexInMarix] = weight
+        }
+    }
+    extension AdjacencyMatrixGraph {
+        func getWeight(source: Vertex<T>, destination: Vertex<T>) -> Double? {
+            return matrix[source.indexInMarix][destination.indexInMarix]
+        }
+    }                                                                               /// predecessor A -> B  source = "A" indexInMarix = 0 weight = 2  "B" indexInMatrix = 1
+    extension AdjacencyMatrixGraph {                                                /// 0   1   2      --->   0   1   2
+        func apply(source: Vertex<T>) -> BellmanFordResult<T>? {                    /// 0   nil nil               0          vertexFromIndex
+            var predecessors = [Int?](repeating: nil, count: vertices.count)        ///
+            var weights = Array(repeating: Double.infinity, count: vertices.count)  /// weight               A   B   C  A - C 5 false
+            predecessors[source.indexInMarix] = source.indexInMarix                 /// 0   1   2      --->  0   1   2
+            weights[source.indexInMarix] = 0                                        /// 0  infi infi         0   2   3      vertexToIndex
+            for _ in 0..<vertices.count - 1 {                                       /// count - 1
+                var weightUpdated = false
+                edges.forEach {                                                     /// edges[A-B:2, B-C:1, A-C:5]
+                    let weight = $0.weight!
+                    let relaxDistance = weights[$0.vertexFrom.indexInMarix] + weight/// 100 < infi        true
+                    if relaxDistance < weights[$0.vartexTo.indexInMarix] {          /// infi + 100 < infi false
+                        predecessors[$0.vartexTo.indexInMarix] = $0.vertexFrom.indexInMarix
+                        weights[$0.vartexTo.indexInMarix] = relaxDistance
+                        weightUpdated = true
+                    }
+                }
+                guard weightUpdated else { break }
+            }
+            for edge in edges where weights[edge.vartexTo.indexInMarix] > weights[edge.vertexFrom.indexInMarix] + edge.weight! { return nil } /// 是否存在负权回路
+            return BellmanFordResult(predecessors: predecessors, weights: weights)
+        }
+    }
+    public struct BellmanFordResult<T: Hashable> {
+        fileprivate var predecessors: [Int?]
+        fileprivate var weights: [Double]
+    }
+    extension BellmanFordResult {
+        func distance(vertexTo: Vertex<T>) -> Double? {
+            let distance = weights[vertexTo.indexInMarix]
+            guard distance != Double.infinity else { return nil }
+            return distance
+        }
+        func recursePathTo(vertex: Vertex<T>, graph: AdjacencyMatrixGraph<T>) -> [Vertex<T>]? {
+            guard weights[vertex.indexInMarix] != Double.infinity else { return nil }
+            guard let predecessorIndex = predecessors[vertex.indexInMarix] else { return nil }
+            let prevVertex = graph.vertices[predecessorIndex]
+            if prevVertex.indexInMarix == vertex.indexInMarix { return [vertex] }                    /// predecessor    A    B    C
+            guard let buildPath = recursePathTo(vertex: prevVertex, graph: graph) else { return nil }///                0    1    2
+            return buildPath + [vertex]                                                              ///                0    0    1
+        }
+    }
+    var graph = AdjacencyMatrixGraph<String>()
+    let vertexA = graph.createVertex("A")
+    let vertexB = graph.createVertex("B")
+    let vertexC = graph.createVertex("C")
+    ///       2
+    graph.addDirectEdge(lhs: vertexA, rhs: vertexB, weight: 2)  ///   A ----- B
+    graph.addDirectEdge(lhs: vertexB, rhs: vertexC, weight: 1)  ///   |       |  1
+    graph.addDirectEdge(lhs: vertexA, rhs: vertexC, weight: 5)  ///   5------ C
+    
+    let bellManResult = graph.apply(source: vertexA)
+    let vertexArray = bellManResult?.recursePathTo(vertex: vertexC, graph: graph)
+    vertexArray?.forEach { print($0.data) } //A B C
