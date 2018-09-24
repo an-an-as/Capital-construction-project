@@ -150,7 +150,7 @@ graph.addDirectedEdge(b, to: c, withWeight: 2.0)
 graph.addDirectedEdge(a, to: c, withWeight: -5.5)
 
 print(graph.description)
-/*******version 2**********/
+/********************* version 2 ************************/
 public struct AdjacencyListGraph<T: Hashable> {
     private var list = [AdjacencyList<T>]()
 }
