@@ -415,7 +415,8 @@ extension SinglyLinkedList {
                 guard storage.head != nil && storage.tail != nil else {
                     return IndirectStorage(head: nil, tail: nil)
                 }
-                var previousCopied = Node(value: storage.head!.value)
+                var headCopied = Node(value: storage.head!.value)
+                var previousCopied = headCopied
                 var current = storage.head?.next
                 while current != nil {
                     let currentCopied = Node(value: current!.value)
@@ -423,7 +424,7 @@ extension SinglyLinkedList {
                     previousCopied = currentCopied
                     current = current?.next
                 }
-                return IndirectStorage(head: Node(value: storage.head!.value), tail: previousCopied)
+                return IndirectStorage(head: headCopied, tail: previousCopied)
             }
             if !isKnownUniquelyReferenced(&storage) {
                 storage = copy()
@@ -477,9 +478,10 @@ extension SinglyLinkedList where T: Comparable {
 }
 extension SinglyLinkedList {
     func findNode(_ index: Int) -> Node? {
+        guard index < count else { return nil }
         var initial = 0
         var current = storage.head
-        while initial < initial {
+        while initial < index {
             current = current?.next
             initial += 1
         }
@@ -552,7 +554,7 @@ extension SinglyLinkedList: Collection {
     }
 }
 extension Sequence where Element: Hashable {
-    func selectDistainct() -> [Element] {
+    func selectDistinct() -> [Element] {
         var tempSet = Set<Element>()
         return filter { tempSet.insert($0).inserted }
     }
@@ -564,4 +566,5 @@ list.prepend(0)
 list.remove(3)
 print(list.findNode(0)?.value) //   Optional(0)
 print(list.debugDescription)   //   0 -----> 1 -----> 2 -----> 4 -----> 5 -----> 5 -----> 5 -----> 6
-print(list.selectDistainct())  //   [0, 1, 2, 4, 5, 6]
+print(list.selectDistinct())   //   [0, 1, 2, 4, 5, 6]
+print(list.reversed())
