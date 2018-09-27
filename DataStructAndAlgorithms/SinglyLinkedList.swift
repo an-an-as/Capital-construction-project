@@ -386,11 +386,11 @@ print(list2)
 
 /********************************************  VERSION 2  *************************************************************************/
 public struct SinglyLinkedList<T> {
-    private var storage: IndirectStorge<T>
+    private var storage: IndirectStorage<T>
 }
 extension SinglyLinkedList {
-    typealias Node = SinglyLinkedListNode<T>
-    class SinglyLinkedListNode<T> {
+    public typealias Node = SinglyLinkedListNode<T>
+    public class SinglyLinkedListNode<T> {
         var value: T
         var next: Node?
         init(value: T) {
@@ -399,22 +399,25 @@ extension SinglyLinkedList {
     }
 }
 extension SinglyLinkedList {
-    private class IndirectStorge<T> {
+    private class IndirectStorage<T> {
         var head: Node?
         var tail: Node?
         init(head: Node?, tail: Node?) {
             self.head = head
             self.tail = tail
         }
+        convenience init() {
+            self.init(head: nil, tail: nil)
+        }
     }
 }
 extension SinglyLinkedList {
-    private  var storageForWritting: IndirectStorge<T> {
+    private var storageForWritting: IndirectStorage<T> {
         mutating get {
-            func copy() -> IndirectStorge<T> {
-                guard storage.head != nil && storage.tail != nil else { return IndirectStorge(head: nil, tail: nil) }
-                let copiedHead = Node(value: storage.head!.value)
-                var previousCopied = copiedHead
+            func copy() -> IndirectStorage<T> {
+                guard storage.head != nil && storage.tail != nil else { return IndirectStorage() }
+                let headCopied = Node(value: storage.head!.value)
+                var previousCopied = headCopied
                 var current = storage.head?.next
                 while current != nil {
                     let currentCopied = Node(value: current!.value)
@@ -422,7 +425,7 @@ extension SinglyLinkedList {
                     previousCopied = currentCopied
                     current = current?.next
                 }
-                return IndirectStorge(head: copiedHead, tail: previousCopied)
+                return IndirectStorage(head: headCopied, tail: previousCopied)
             }
             if !isKnownUniquelyReferenced(&storage) {
                 storage = copy()
@@ -433,7 +436,6 @@ extension SinglyLinkedList {
 }
 extension SinglyLinkedList {
     func findNode(at index: Int) -> Node {
-        assert(index >= 0 && index < count)
         var current = storage.head
         var initial = 0
         while initial < index {
@@ -444,7 +446,7 @@ extension SinglyLinkedList {
     }
 }
 extension SinglyLinkedList {
-    private mutating func appendNode(node: Node) {
+    private mutating func appendNode(_ node: Node) {
         if storage.tail != nil {
             storageForWritting.tail?.next = node
         } else {
@@ -452,63 +454,72 @@ extension SinglyLinkedList {
         }
         storageForWritting.tail = node
     }
-    private mutating func prependNode(node: Node) {
+    private mutating func prependNode(_ node: Node) {
         node.next = storageForWritting.head
         storageForWritting.head = node
-        if storage.tail == nil {
+        if storageForWritting.tail == nil {
             storageForWritting.tail = node
         }
     }
     public mutating func append(_ newValue: T) {
-        self.appendNode(node: Node(value: newValue))
+        appendNode(Node(value: newValue))
     }
     public mutating func prepend(_ newValue: T) {
-        self.prependNode(node: Node(value: newValue))
+        prependNode(Node(value: newValue))
     }
 }
 extension SinglyLinkedList where T: Comparable {
-    @discardableResult
-    public mutating func remove(_ value: T) -> T? {
+    public mutating func remove(value: T) {
         var current = storage.head
         var previous: Node?
-        while current != nil && current?.value != value {
+        while current?.next != nil && current?.value != value {
             previous = current
             current = current?.next
         }
         if let found = current {
-            if found === storage.head {
+            if storage.head === found {
                 storageForWritting.head = found.next
             }
-            if found === storage.tail {
+            if storage.tail === found {
                 storageForWritting.tail = previous
             }
             previous?.next = found.next
             found.next = nil
         }
-        return current?.value
     }
-    @discardableResult
-    public mutating func remove(at index: Int) -> T? {
-        assert(index >= 0 && index < count)
+    public mutating func remove(at index: Int) {
+        let node = findNode(at: index)
+        remove(value: node.value)
+    }
+}
+extension SinglyLinkedList: CustomDebugStringConvertible {
+    public var debugDescription: String {
         var current = storage.head
-        var previous: Node?
-        var initial = 0
-        while initial < index {
-            previous = current
+        var temp = [T]()
+        while current != nil {
+            temp.append(current!.value)
             current = current?.next
-            initial += 1
         }
-        if let found = current {
-            if found === storage.head {
-                storageForWritting.head = found.next
+        return temp.map { "\($0)" }.joined(separator: " -----> ")
+    }
+}
+extension SinglyLinkedList: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: T...) {
+        self.init(storage: IndirectStorage())
+        var headSet = false
+        var previous: Node?
+        elements.forEach {
+            if !headSet {
+                storage.head = Node(value: $0)
+                previous = storage.head
+                headSet = true
+            } else {
+                let node = Node(value: $0)
+                previous?.next = node
+                previous = node
             }
-            if found === storage.tail {
-                storageForWritting.tail = previous
-            }
-            previous?.next = found.next
-            found.next = nil
         }
-        return current?.value
+        storage.tail = previous
     }
 }
 public struct ListIndex<T>: Comparable {
@@ -523,15 +534,15 @@ public struct ListIndex<T>: Comparable {
 }
 extension SinglyLinkedList: Collection {
     public typealias Index = ListIndex<T>
-    public var startIndex: Index {
-        return Index(node: storage.head, tag: 0)
+    public var startIndex: ListIndex<T> {
+        return ListIndex(node: storage.head, tag: 0)
     }
     public var endIndex: ListIndex<T> {
         if storage.head != nil {
-            var count = 1
             var current = storage.head
-            while let nextNode = current?.next {
-                current = nextNode
+            var count = 1
+            while current?.next != nil {
+                current = current?.next
                 count += 1
             }
             return ListIndex(node: storage.head, tag: count)
@@ -541,31 +552,12 @@ extension SinglyLinkedList: Collection {
     public func index(after index: ListIndex<T>) -> ListIndex<T> {
         return ListIndex(node: index.node?.next, tag: index.tag + 1)
     }
-    public subscript (pos: Index) -> T {
+    public subscript(pos: Index) -> T {
         return pos.node!.value
     }
 }
-extension SinglyLinkedList: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: T...) {
-        self.init(storage: IndirectStorge(head: nil, tail: nil))
-        var headSet  = false
-        var previous: Node?
-        elements.forEach {
-            if !headSet {
-                storage.head = Node(value: $0)
-                previous = storage.head
-                headSet = true
-            } else {
-                let newNode = Node(value: $0)
-                previous?.next = newNode
-                previous = newNode
-            }
-        }
-        storage.tail = previous
-    }
-}
 public struct ListIterator<T>: IteratorProtocol {
-    fileprivate(set) var current: SinglyLinkedList<T>.Node?
+    var current: SinglyLinkedList<T>.Node?
     public mutating func next() -> T? {
         let result = current?.value
         current = current?.next
@@ -583,34 +575,12 @@ extension Sequence where Element: Hashable {
         return filter { temp.insert($0).inserted }
     }
 }
-extension SinglyLinkedList: CustomStringConvertible {
-    public var description: String {
-        var temp = [T]()
-        var current = storage.head
-        while current != nil {
-            temp.append(current!.value)
-            current = current?.next
-        }
-        return temp.map { "\($0)" }.joined(separator: " -----> ")
-    }
-}
-extension SinglyLinkedList {
-    public subscript(pos: Int) -> T {
-        get {
-            return findNode(at: pos).value
-        }
-        set {
-            findNode(at: pos).value = newValue
-        }
-    }
-}
-var list: SinglyLinkedList = [1, 2, 3, 4, 5, 5, 5]
-list.append(6)
+
+var list: SinglyLinkedList = [1, 2, 3]
+list.append(3)
 list.prepend(0)
-list.remove(3)
-list.remove(at: list.count - 1)
-print(list[0])
-list[0] = 1_000
-print(list)            // 1000 -----> 1 -----> 2 -----> 4 -----> 5 -----> 5 -----> 5
-print(list.reversed()) // [5, 5, 5, 4, 2, 1, 0]
-print(list.contains(2))// true
+list.remove(at: 1)
+list.remove(value: 2)
+print(list.debugDescription)
+print(list.selectDistinct())
+print(list.reversed())
