@@ -436,6 +436,7 @@ extension SinglyLinkedList {
 }
 extension SinglyLinkedList {
     func findNode(at index: Int) -> Node {
+        assert(index >= 0 && index < count)
         var current = storage.head
         var initial = 0
         while initial < index {
