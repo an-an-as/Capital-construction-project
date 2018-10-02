@@ -230,3 +230,42 @@ let targetC = graph.createVertex("C")
 graph.addDirectEdge(source: targetA, destination: targetB, weight: 100)
 graph.addDirectEdge(source: targetA, destination: targetC, weight: 200)
 print(graph.getWeight(source: targetA, destination: targetC))
+/****** version3 ******/
+public struct Edge<T> {
+    public var vertex1: T
+    public var vertex2: T
+    public var weight: Int
+}
+extension Edge: CustomStringConvertible {
+    public var description: String {
+        return "\(vertex1)-\(vertex2): \(weight)"
+    }
+}
+public struct AdjacencyListGraph<T: Hashable> {
+    public private(set) var edges: [Edge<T>]
+    public private(set) var vertices: Set<T>
+    public private(set) var list: [T: [(vertex: T, weight: Int)]]
+    init() {
+        edges = [Edge<T>]()
+        vertices = Set<T>()
+        list = [T: [(vertex: T, weight: Int)]]()
+    }
+}
+extension AdjacencyListGraph {
+    public mutating func addEdge(vertex1: T, vertex2: T, weight: Int) {
+        edges.append(Edge(vertex1: vertex1, vertex2: vertex2, weight: weight))
+        vertices.insert(vertex1)
+        vertices.insert(vertex2)
+        list[vertex1] = list[vertex1] ?? []
+        list[vertex1]?.append( (vertex: vertex1, weight: weight) )
+    }
+}
+extension AdjacencyListGraph: CustomStringConvertible {
+    public var description: String {
+        var str = ""
+        for edge in edges {
+            str += edge.description + "\n"
+        }
+        return str
+    }
+}
