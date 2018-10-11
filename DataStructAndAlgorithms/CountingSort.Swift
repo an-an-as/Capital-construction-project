@@ -56,7 +56,7 @@ func countingSort(_ array: [Int]) -> [Int] {
     }                                                         ///  countArray[2] = 2
     print(countArray)                                         ///  countArray[3] = 3
     var sortedArray = [Int](repeating: 0, count: array.count) ///  countArray[4] = 3
-    for element in array {                                    ///  countArray[5] = 5
+    for element in array {                                    ///  countArray[5] = 4
         countArray[element] -= 1                              //   [0, 1, 2, 3, 3, 4]
         sortedArray[countArray[element]] = element            ///  sortedArray [0, 0, 0, 0]
     }                                                         ///  3 2 5 1
@@ -64,7 +64,7 @@ func countingSort(_ array: [Int]) -> [Int] {
 }                                                             ///                               sortedArray[2] = 3
 var temp = [3, 2, 5, 1]                                       ///  countArray[2] -= 1  -->  1
 print(countingSort(temp))                                     ///                               sortedArray[1] = 2
-                                                              ///  countArray[5] -= 1  -->  4
-                                                              ///                               sortedArray[4] = 5
+                                                              ///  countArray[5] -= 1  -->  3
+                                                              ///                               sortedArray[3] = 5
                                                               ///  countArray[1] -= 1  -->  0
                                                               ///                               sortedArray[0] = 1
