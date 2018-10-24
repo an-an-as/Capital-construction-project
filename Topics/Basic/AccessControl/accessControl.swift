@@ -1,24 +1,3 @@
-/*********************************************  Modules and Source Files ********************************************
-* Swift 中的访问控制模型基于模块和源文件这两个概念
-* 模块指的是独立的代码单元，框架或应用程序会作为一个独立的模块来构建和发布。在 Swift 中，一个模块可以使用 import 关键字导入另外一个模块。
-* 源文件就是 Swift 中的源代码文件，它通常属于一个模块,同一个源文件也可以包含多个类型、函数之类的定义
- 
- 程序运行一般需经预处理、编译、汇编和链接几个步骤   (链接是指在电子计算机程序的各模块之间传递参数和控制命令，并把它们组成一个可执行的整体的过程)
- 静态库特点是可执行文件中包含了库代码的一份完整拷贝；缺点就是被多次使用就会有多份冗余拷贝。
- 
- 静态库和动态库是两种共享程序代码的方式，它们的区别是：
- 
- 静态库在程序的链接阶段被复制到了程序中，和程序运行的时候没有关系；
- 链接时不复制，程序运行时由系统动态加载到内存，供程序调用，系统只加载一次，多个程序共用，以节省内存(不能上传AppStore)
- 
- 
- 存在形式
- 静态库：.a 和 .framework
- 动态库：.dylib 和 .framework (ios9 取消 .dylib 改用.tbd  text-based stub libraries)
- */
-
-
-
 /****************************Access Levels****************************/
 ///基本原则：不可以在某个实体中定义访问级别更低（更严格）的实体。
 ///函数的访问级别不能高于它的参数类型和返回类型的访问级别。因为这样就会出现函数可以在任何地方被访问，但是它的参数类型和返回类型却不可以的情况。
@@ -44,8 +23,6 @@
 ///私有访问限制实体只能在所定义的作用域内使用。
 ///需要把这些细节被整个作用域使用的时候，使用文件私有访问隐藏了一些特定功能的实现细节。
 
-
-
 public class SomePublicClass {}
 internal class SomeInternalClass {}
 fileprivate class SomeFilePrivateClass {}
@@ -57,7 +34,6 @@ fileprivate func someFilePrivateFunction() {}
 private func somePrivateFunction() {}
 
 
-
 /********************** Custom Types **********************************/
 public class SomePublicClass {                   // 显式公开类
     public var somePublicProperty = 0            // 显式公开类成员
@@ -65,18 +41,15 @@ public class SomePublicClass {                   // 显式公开类
     fileprivate func someFilePrivateMethod() {}  // 显式文件私有类成员
     private func somePrivateMethod() {}          // 显式私有类成员
 }
-
 class SomeInternalClass {                        // 隐式内部类
     var someInternalProperty = 0                 // 隐式内部类成员
     fileprivate func someFilePrivateMethod() {}  // 显式文件私有类成员
     private func somePrivateMethod() {}          // 显式私有类成员
 }
-
 fileprivate class SomeFilePrivateClass {         // 显式文件私有类
     func someFilePrivateMethod() {}              // 隐式文件私有类成员
     private func somePrivateMethod() {}          // 显式私有类成员
 }
-
 private class SomePrivateClass {                 // 显式私有类
     func somePrivateMethod() {}                  // 隐式私有类成员
 }
@@ -86,8 +59,6 @@ private class SomePrivateClass {                 // 显式私有类
 ///元组不同于类、结构体、枚举、函数那样有单独的定义。元组的访问级别是在它被使用时自动推断出的，而无法明确指定。
 
 
-
-
 /****************** Function Types    ******************/
 ///函数的访问级别根据访问级别最严格的参数类型或返回类型的访问级别来决定。
 ///如果这种访问级别不符合函数定义所在环境的默认访问级别，那么就需要明确地指定该函数的访问级别。
@@ -95,7 +66,6 @@ private func someFunction() -> (SomeInternalClass, SomePrivateClass) {}
 /// 将该函数指定为 public 或 internal，或者使用默认的访问级别 internal 都是错误的
 /// 因为如果把该函数当做 public 或 internal 级别来使用的话，可能会无法访问 private 级别的返回值
 /// ⚠️Function must be declared private or fileprivate because its parameter uses a private type
-
 
 
 /******************  Enumeration Types   ******************/
@@ -109,15 +79,15 @@ public enum CompassPoint {
     case west
 }
 
+
 /******************  Nested Types   ******************/
 ///如果在 private 级别的类型中定义嵌套类型，那么该嵌套类型就自动拥有 private 访问级别。
 ///如果在 public 或者 internal 级别的类型中定义嵌套类型，那么该嵌套类型自动拥有 internal 访问级别。
 ///如果想让嵌套类型拥有 public 访问级别，那么需要明确指定该嵌套类型的访问级别。
 
 
-
 /****************** Subclassing  ******************/
-///子类的访问级别不得高于父类的访问级别。例如，父类的访问级别是 internal，子类的访问级别就不能是 public。(通过继承可访问父类成员, f如果父类private则访问不到)
+///子类的访问级别不得高于父类的访问级别。例如，父类的访问级别是 internal，子类的访问级别就不能是 public。(通过继承可访问父类成员, 如果父类private则访问不到)
 ///可以通过重写为继承来的类成员提供更高的访问级别。在子类中，用子类成员去访问访问级别更低的父类成员，只要这一操作在相应访问级别的限制范围内
 public class A {
     fileprivate func someMethod() {}
@@ -135,12 +105,12 @@ internal class B: A {
     }
 }
 
+
 /************************   Constants, Variables, Properties, and Subscripts    *****************/
 ///常量、变量、属性不能拥有比它们的类型更高的访问级别。
 ///例如，你不能定义一个 public 级别的属性，但是它的类型却是 private 级别的。同样，下标也不能拥有比索引类型或返回类型更高的访问级别。
 ///如果常量、变量、属性、下标的类型是 private 级别的，那么它们必须明确指定访问级别为 private：
 private var privateInstance = SomePrivateClass()
-
 
 
 /********** Getters and Setters **********/
@@ -158,14 +128,12 @@ struct TrackedString {
         }
     }
 }
-
 var stringToEdit = TrackedString()
 stringToEdit.value = "This string will be tracked."
 stringToEdit.value += " This edit will increment numberOfEdits."
 stringToEdit.value += " So will this one."
 print("The number of edits is \(stringToEdit.numberOfEdits)")
 /// 打印 “The number of edits is 3”
-
 
 public struct TrackedString {
     public private(set) var numberOfEdits = 0
@@ -178,10 +146,10 @@ public struct TrackedString {
     public init() {}
 }
 
+
 /********** Initializers **********/
 ///自定义构造器的访问级别可以低于或等于其所属类型的访问级别,
 ///如同函数或方法的参数，构造器参数的访问级别也不能低于构造器本身的访问级别。
-
 
 
 /********** Default Initializers **********/
@@ -189,18 +157,14 @@ public struct TrackedString {
 ///如果你希望一个 public 级别的类型也能在其他模块中使用这种无参数的默认构造器，你只能自己提供一个 public 访问级别的无参数构造器。
 
 
-
 /********** Default Memberwise Initializers for Structure Types **********/
 ///如果结构体中任意存储型属性的访问级别为 private，那么该结构体默认的成员逐一构造器的访问级别就是 private。否则，这种构造器的访问级别依然是 internal。
 ///如同前面提到的默认构造器，如果你希望一个 public 级别的结构体也能在其他模块中使用其默认的成员逐一构造器，你依然只能自己提供一个 public 访问级别的成员逐一构造器。
 
 
-
 /********** Protocols **********/
 ///如果你定义了一个 public 访问级别的协议，那么该协议的所有实现也会是 public 访问级别。
 ///这一点不同于其他类型，例如，当类型是 public 访问级别时，其成员的访问级别却只是 internal。
-
-
 
 
 /********** Protocol Inheritance **********/
@@ -209,19 +173,15 @@ public struct TrackedString {
 ///如果你采纳了协议，那么实现了协议的所有要求后，你必须确保这些实现的访问级别不能低于协议的访问级别。例如，一个 public 级别的类型，采纳了 internal 级别的协议，那么协议的实现至少也得是 internal 级别。
 
 
-
 /********** Protocol Conformance **********/
 ///一个类型可以采纳比自身访问级别低的协议。
 ///例如，你可以定义一个 public 级别的类型，它可以在其他模块中使用，同时它也可以采纳一个 internal 级别的协议，但是只能在该协议所在的模块中作为符合该协议的类型使用。
-
 
 
 /********** Extensions **********/
 /// 你可以在访问级别允许的情况下对类、结构体、枚举进行扩展。扩展成员具有和原始类型成员一致的访问级别。
 /// 例如，你扩展了一个 public 或者 internal 类型，扩展中的成员具有默认的 internal 访问级别，和原始类型中的成员一致 。如果你扩展了一个 private 类型，扩展成员则拥有默认的 private 访问级别。
 /// 或者，你可以明确指定扩展的访问级别（例如，private extension），从而给该扩展中的所有成员指定一个新的默认访问级别。这个新的默认访问级别仍然可以被单独指定的访问级别所覆盖
-
-
 
 
 /********** Private Members in Extensions **********/
