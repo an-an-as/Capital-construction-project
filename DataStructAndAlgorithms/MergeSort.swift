@@ -111,7 +111,7 @@ extension Array where Element:Comparable {
             size *= 2
         }
     }
-    func mergeSort() -> [Element]{
+    func mergeSort() -> [Element] {
         var clone = Array.init()
         clone.append(contentsOf: self)
         clone.mergeSortInPlace()
