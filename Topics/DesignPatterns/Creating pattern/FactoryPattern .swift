@@ -134,6 +134,7 @@ user1.fire(select: .AK47)
         GermanyDecorator: fire() -> 通过子类添加额外信息         <-----------------------------  switch 类型的枚举创建具体子类的实例 GermanyDecorator()
         AmericaDecorator: fire() -> return "美国造：" + weapon.fire()
  
+ 不同厂商用户 对用相应厂商 制造商呈现多态  用户通过协议也跟着呈现多态
  ````
 */
 
@@ -242,6 +243,8 @@ user.fireWithType(weaponType: .AK47)
  GermanyDecorator: fire() -> 通过子类添加额外信息                           init(factory: WeaponFactoryType) select AK -> factory.createAK
  AmericaDecorator: fire() -> return "美国造：" + weapon.fire()
  
+ 
+  制造商多态 通过工厂创建相应的制造商的武器 用户可重置厂商选择其武器
  ````
  */
 enum WeaponTypeEnumeration {
@@ -362,6 +365,7 @@ user.fireWithType(.HK)
                                                                                   createWeaponFactory -> WeaponFactoryType ---------------------
                                                                         接口实现:  AmericanUser createWeaponFactory -> return AmericanWeaponFactory()
                                                                                   GermanyUser  createWeaponFactory -> return GermanyWeaponFactory()
+
  ````
  */
 enum WeaponTypeEnumeration {
@@ -442,9 +446,9 @@ class GermanyWeaponFactory: WeaponFactoryType {
 /// 抽象工厂 + 工厂方法， 使用工厂方法模式重写WeaponUser类的结构
 protocol WeaponUserType {
     func fireWithType(weaponType: WeaponTypeEnumeration)
-    func createWeaponWithType(weaponType: WeaponTypeEnumeration) -> WeaponType!
+    func createWeaponWithType(weaponType: WeaponTypeEnumeration) -> WeaponType! /// 抽象工厂中直接交给用户
     //工厂方法
-    func createWeaponFactory() -> WeaponFactoryType
+    func createWeaponFactory() -> WeaponFactoryType /// 有了工厂就可以避免用户中重复代码 有工厂对应相应的装饰器p
     
 }
 // MARK: - 为fireWithType方法添加默认实现

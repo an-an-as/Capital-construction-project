@@ -54,7 +54,7 @@ unsafeAddressOf(single1)
 unsafeAddressOf(single2)
 
 //利用静态存储属性进行创建
-class SingletonPattern {
+public class SingletonPattern {
     static private let instance = SingletonPattern()
     static public func sharedInstance() -> SingletonPattern {
         return instance
@@ -63,7 +63,7 @@ class SingletonPattern {
 }
 func address<T>(_ point: T) -> String {
     return String.init(format: "%018p", unsafeBitCast(point, to: Int.self))
-}
+
 let singleton1 = SingletonPattern.sharedInstance()
 let singleton2 = SingletonPattern.sharedInstance()
 print(address(singleton1)) // 0x0000000100f11ae0
