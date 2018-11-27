@@ -56,7 +56,6 @@ struct Point {
     }
 }
 
-
 enum TriStateSwitch {
     case Off, Low, High
     mutating func next() {
@@ -73,22 +72,3 @@ enum TriStateSwitch {
 var ovenLight = TriStateSwitch.Low
 ovenLight.next()
 ovenLight.next()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
