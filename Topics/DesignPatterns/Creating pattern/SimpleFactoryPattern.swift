@@ -1,4 +1,4 @@
-protocol WeaponProtocol {
+private protocol WeaponProtocol {
     func fire()
 }
 private class WeaponA: WeaponProtocol {

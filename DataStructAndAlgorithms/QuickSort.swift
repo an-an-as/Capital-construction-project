@@ -110,29 +110,28 @@ print(list) // [-1, 0, 1, 2, 3, 5, 8, 8, 9, 10, 14, 26, 27]
 /// 5 == 5 stop recursion
 // result [-1, 0, 1, 2, 3, 5, 8]
 /******** version3 ******/
-extension Array where Element: Comparable {
-    public mutating func quickSortInPlace(sort: @escaping (Element, Element) -> Bool) {
-        func partionHoare(low: Index, high: Index) -> Index {
-            let pivot = self[low]
-            var indexL = low - 1
-            var indexR = high + 1
+extension Array {
+    mutating func quickSortInPlace(_ sort: @escaping(Element, Element) -> Bool) {
+        func partion(indexL: Index,indexR: Index ) -> Index {
+            let pivot = self[indexL]
+            var cursorL = indexL - 1
+            var cursorR = indexR + 1
             while true {
-                repeat { indexL += 1 } while sort(self[indexL], pivot)
-                repeat { indexR -= 1 } while sort(pivot, self[indexR])
-                if indexL < indexR {
-                    swapAt(indexL, indexR)
+                repeat { cursorL += 1 } while sort(self[cursorL],pivot)
+                repeat { cursorR -= 1 } while sort(pivot, self[cursorR])
+                if cursorL < cursorR {
+                    swapAt(cursorL, cursorR)
                 } else {
-                    return indexR
+                    return cursorL
                 }
             }
         }
-        func quickSortHoare(low: Index, high: Index) {
-            if low < high {
-                let partion = partionHoare(low: low, high: high)
-                quickSortHoare(low: low, high: partion)
-                quickSortHoare(low: partion + 1, high: high)
-            }
+        func quickSort(indexL: Index, indexR: Index) {
+            guard indexL < indexR  else { return }
+            let part = partion(indexL: indexL, indexR: indexR)
+            quickSort(indexL: indexL, indexR: part)
+            quickSort(indexL: part + 1, indexR: indexR)
         }
-        quickSortHoare(low: startIndex, high: count - 1)
+        quickSort(indexL: startIndex, indexR: index(before: count))
     }
 }

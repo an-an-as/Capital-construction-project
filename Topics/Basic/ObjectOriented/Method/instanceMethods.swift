@@ -1,3 +1,7 @@
+/**
+ In Objective-C, classes are the only types that can define methods,在swift中, 可以选择是定义类、结构体还是枚举,
+ */
+
 class Counter {
     var count = 0
     func increment() {
@@ -46,8 +50,6 @@ fixedPoint.moveByX(2.0, y: 3.0)
 // because its properties cannot be changed, even if they are variable properties
 
 
-
-
 /*********  Assigning to self Within a Mutating Method  **********/
 struct Point {
     var x = 0.0, y = 0.0
@@ -56,19 +58,25 @@ struct Point {
     }
 }
 
-enum TriStateSwitch {
-    case Off, Low, High
-    mutating func next() {
+enum State {
+    case on, off
+    mutating func toggle() {
         switch self {
-        case .Off:
-            self = .Low
-        case .Low:
-            self = .High
-        case .High:
-            self = .Off
+        case .on:
+            self = .off
+        case .off:
+            self = .on
         }
     }
+    init() {
+        self = .off
+    }
 }
-var ovenLight = TriStateSwitch.Low
-ovenLight.next()
-ovenLight.next()
+var state = State()
+state.toggle()
+switch state {
+case .on:
+    print("STATE ON")
+case .off:
+    print("OFF")
+}
