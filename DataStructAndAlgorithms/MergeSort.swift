@@ -125,3 +125,36 @@ var arr = [Int]()
 arr.mergeSortInPlace()
 print(arr)
 ///[59, 155, 194, 230, 270, 289, 295, 324, 329, 374, 386, 391, 495, 513, 528, 575, 583, 641, 672, 680, 823]
+
+//version swift4.2
+extension Array {
+    mutating func mergeSortInPlace(_ sort: @escaping (Element, Element) -> Bool) {
+        var temp = [Element]()
+        temp.reserveCapacity(count)
+        func mergeSort(currentIndex: Index, nextNeedComparied: Index, endIndex: Index) {
+            temp.removeAll(keepingCapacity: true)
+            var cursorL = currentIndex
+            var cursorR = nextNeedComparied
+            while cursorL < nextNeedComparied && cursorR < endIndex {
+                if sort(self[cursorL], self[cursorR]) {
+                    temp.append(self[cursorL])
+                    cursorL += 1
+                } else {
+                    temp.append(self[cursorR])
+                    cursorR += 1
+                }
+            }
+            temp.append(contentsOf: self[cursorL..<nextNeedComparied])
+            temp.append(contentsOf: self[cursorR..<endIndex])
+            replaceSubrange(currentIndex..<endIndex, with: temp)
+        }
+        var size = 1
+        let arrayCount = count
+        while size < count {
+            for strideIndex in stride(from: 0, to: arrayCount - size, by: size * 2) {
+                mergeSort(currentIndex: strideIndex, nextNeedComparied: strideIndex + size, endIndex: Swift.min(strideIndex + size * 2, count))
+            }
+            size *= 2
+        }
+    }
+}
