@@ -122,7 +122,7 @@ extension Array {
                 if cursorL < cursorR {
                     swapAt(cursorL, cursorR)
                 } else {
-                    return cursorL
+                    return cursorR
                 }
             }
         }
