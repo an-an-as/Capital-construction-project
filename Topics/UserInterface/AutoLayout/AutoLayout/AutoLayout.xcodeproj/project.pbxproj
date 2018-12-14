@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B1B08F921BFE8C300E7EEC9 /* ViewController2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B08F821BFE8C300E7EEC9 /* ViewController2.swift */; };
+		9B1B08FD21C0EAAC00E7EEC9 /* MyLable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B08FC21C0EAAC00E7EEC9 /* MyLable.swift */; };
 		9BE752FE21A3FE6200D75F2A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE752FD21A3FE6200D75F2A /* AppDelegate.swift */; };
 		9BE7530021A3FE6200D75F2A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE752FF21A3FE6200D75F2A /* ViewController.swift */; };
 		9BE7530321A3FE6200D75F2A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9BE7530121A3FE6200D75F2A /* Main.storyboard */; };
@@ -15,6 +17,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9B1B08F821BFE8C300E7EEC9 /* ViewController2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController2.swift; sourceTree = "<group>"; };
+		9B1B08FB21BFF92400E7EEC9 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9B1B08FC21C0EAAC00E7EEC9 /* MyLable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyLable.swift; sourceTree = "<group>"; };
 		9BE752FA21A3FE6200D75F2A /* AutoLayout.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoLayout.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BE752FD21A3FE6200D75F2A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9BE752FF21A3FE6200D75F2A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -36,9 +41,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9B1B08F721BFE8A500E7EEC9 /* View1 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = View1;
+			sourceTree = "<group>";
+		};
+		9B1B08FA21BFE8CD00E7EEC9 /* View2 */ = {
+			isa = PBXGroup;
+			children = (
+				9B1B08F821BFE8C300E7EEC9 /* ViewController2.swift */,
+				9B1B08FC21C0EAAC00E7EEC9 /* MyLable.swift */,
+			);
+			path = View2;
+			sourceTree = "<group>";
+		};
 		9BE752F121A3FE6200D75F2A = {
 			isa = PBXGroup;
 			children = (
+				9B1B08FB21BFF92400E7EEC9 /* README.md */,
 				9BE752FC21A3FE6200D75F2A /* AutoLayout */,
 				9BE752FB21A3FE6200D75F2A /* Products */,
 			);
@@ -55,6 +77,8 @@
 		9BE752FC21A3FE6200D75F2A /* AutoLayout */ = {
 			isa = PBXGroup;
 			children = (
+				9B1B08FA21BFE8CD00E7EEC9 /* View2 */,
+				9B1B08F721BFE8A500E7EEC9 /* View1 */,
 				9BE752FD21A3FE6200D75F2A /* AppDelegate.swift */,
 				9BE752FF21A3FE6200D75F2A /* ViewController.swift */,
 				9BE7530121A3FE6200D75F2A /* Main.storyboard */,
@@ -138,6 +162,8 @@
 			files = (
 				9BE7530021A3FE6200D75F2A /* ViewController.swift in Sources */,
 				9BE752FE21A3FE6200D75F2A /* AppDelegate.swift in Sources */,
+				9B1B08FD21C0EAAC00E7EEC9 /* MyLable.swift in Sources */,
+				9B1B08F921BFE8C300E7EEC9 /* ViewController2.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
