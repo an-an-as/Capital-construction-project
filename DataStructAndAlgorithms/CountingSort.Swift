@@ -46,25 +46,52 @@ func countingSort(_ array: [Int]) -> [Int] {
     guard array.count > 0 else {return []}  /// [3, 2, 5, 1]
     let maxElement = array.max() ?? 0       /// maxElement: 5
     var countArray = [Int](repeating: 0, count: Int(maxElement + 1))
-    for element in array {                  /// countArray [0, 0, 0, 0, 0, 0]                1..< countArray.count 总标记可为5
-        countArray[element] += 1            ///            [0, 1, 1, 1, 0, 1]
-    }                                       ///             0  1  2  3  4  5  index == array
-    //  countArray [0, 1, 2, 3, 3, 4]  小于等于标记处数字的个数
-    for index in 1 ..< countArray.count {   ///                1  2  3  4  5
+    for element in array {                  /// countArray [0, 0, 0, 0, 0, 0]  1..< countArray.count 总标记可为5
+        countArray[element] += 1            ///             0  1  2  3  4  5   index 即为array数字 所有需要有足够的空间 max + 1
+    }                                       // countArray [0, 1, 1, 1, 0, 1]   开始计数标记array数字出现的个数
+    for index in 1 ..< countArray.count {                     ///  1  2  3  4  5   统计比各个数小的数量 例如array中比3小的数字就有2个,则3应该出现在第三位
         let sum = countArray[index] + countArray[index - 1]   ///  countArray[1] + countArray[0] = 1
-        countArray[index] = sum                               ///  countArray[1] = 1
-    }                                                         ///  countArray[2] = 2
-    print(countArray)                                         ///  countArray[3] = 3
-    var sortedArray = [Int](repeating: 0, count: array.count) ///  countArray[4] = 3
-    for element in array {                                    ///  countArray[5] = 4
+        countArray[index] = sum                               ///  countArray[2] + countArray[1] = 2
+    }                                                         ///  countArray[3] + countArray[2] = 3
+    print(countArray)                                         ///  countArray[4] + countArray[3] = 3
+    var sortedArray = [Int](repeating: 0, count: array.count) ///  countArray[5] + countArray[4] = 4
+    for element in array {                                    //   0   1  2  3  4  5
         countArray[element] -= 1                              //   [0, 1, 2, 3, 3, 4]
-        sortedArray[countArray[element]] = element            ///  sortedArray [0, 0, 0, 0]
-    }                                                         ///  3 2 5 1
-    return sortedArray                                        ///  countArray[3] -= 1  -->  2   去除自身
-}                                                             ///                               sortedArray[2] = 3
+        sortedArray[countArray[element]] = element            //   sortedArray [0, 0, 0, 0]
+    }                                                         ///  3,  2,  5,  1
+    return sortedArray                                        ///  countArray[3] -= 1  -->  2   除去自身
+}                                                             ///                               sortedArray[2] = 3   比3小的数字有2个 放在数组第三位
 var temp = [3, 2, 5, 1]                                       ///  countArray[2] -= 1  -->  1
 print(countingSort(temp))                                     ///                               sortedArray[1] = 2
                                                               ///  countArray[5] -= 1  -->  3
                                                               ///                               sortedArray[3] = 5
                                                               ///  countArray[1] -= 1  -->  0
                                                               ///                               sortedArray[0] = 1
+                                                               //   0   1   2   3
+                                                               //  [1   2   3   5]
+/******************************* version2 **********************************/
+extension Array where Element == Int {
+    mutating func countSort() {
+        guard let maxNumber = self.max() else { return }
+        var countArray = [Element](repeating: 0, count: maxNumber.advanced(by: 1))
+        self.forEach { countArray[$0] += 1 }
+        for index in 1..<countArray.endIndex {
+            let sum = countArray[index] + countArray[index - 1]
+            countArray[index] = sum
+        }
+        var storedArray = [Element](repeating: 0, count: count)
+        self.forEach {
+            countArray[$0] -= 1
+            storedArray[countArray[$0]] = $0
+        }
+        replaceSubrange(startIndex..<endIndex, with: storedArray)
+    }
+}
+var integer = [Int]()
+(1...10).forEach { _ in
+    let randomNumber = Int.random(in: 1...1_000)
+    integer.append(randomNumber)
+}
+print(integer)
+integer.countSort()
+print(integer)
