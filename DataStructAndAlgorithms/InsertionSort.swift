@@ -44,19 +44,25 @@ print(insertionSort(array))
 
 ///   [1, 5, 7, 2]     [1, 5, 2, 7]     [1, 2, 5, 7]
 ///             i                i                i
-///             c             c             c        探测到异象 启动cursor
+///             c             fc             c        探测到异象 启动cursor
 
-/**************  version2 *************/
+/**************************** version2 ***************************/
 extension Array {
-    public mutating func insertionSortInPlace(sort: (Element, Element) -> Bool) {
-        for index in 1..<count {
-            var cursor = index
-            while cursor > 0 && !sort(self[cursor - 1], self[cursor]) {
-                swapAt(cursor - 1, cursor)
-                cursor -= 1
+    mutating func insertionSort(_ sort: @escaping (Element, Element) -> Bool) {
+        (1..<endIndex).forEach {
+            var currentIndex = $0
+            while currentIndex > startIndex && sort(self[currentIndex], self[index(before: currentIndex)]) {
+                swapAt(currentIndex, index(before: currentIndex))
+                currentIndex -= 1
             }
         }
     }
 }
-array.insertionSortInPlace(sort: <)
-print(array)
+var integers = [Int]()
+(1...10).forEach { _ in
+    let randomNumber = Int.random(in: 1...1_000)
+    integers.append(randomNumber)
+}
+print(integers)
+integers.insertionSort(<)
+print(integers)
