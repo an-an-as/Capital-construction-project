@@ -109,16 +109,15 @@ print(list) // [-1, 0, 1, 2, 3, 5, 8, 8, 9, 10, 14, 26, 27]
 
 /// 5 == 5 stop recursion
 // result [-1, 0, 1, 2, 3, 5, 8]
-/******** version3 ******/
-extension Array {
-    mutating func quickSortInPlace(_ sort: @escaping(Element, Element) -> Bool) {
-        func partion(indexL: Index,indexR: Index ) -> Index {
-            let pivot = self[indexL]
-            var cursorL = indexL - 1
-            var cursorR = indexR + 1
+extension MutableCollection where Self: RandomAccessCollection {
+    mutating func quickSort(_ sort: @escaping(Element, Element) -> Bool) {
+        func fetch(_ lowIndex: Index, highIndex: Index) -> Index {
+            let pivot = self[lowIndex]
+            var cursorL = index(before: lowIndex)
+            var cursorR = index(after: highIndex)
             while true {
-                repeat { cursorL += 1 } while sort(self[cursorL],pivot)
-                repeat { cursorR -= 1 } while sort(pivot, self[cursorR])
+                repeat { formIndex(after: &cursorL) } while sort(self[cursorL], pivot)
+                repeat { formIndex(before: &cursorR)} while sort(pivot, self[cursorR])
                 if cursorL < cursorR {
                     swapAt(cursorL, cursorR)
                 } else {
@@ -126,12 +125,23 @@ extension Array {
                 }
             }
         }
-        func quickSort(indexL: Index, indexR: Index) {
-            guard indexL < indexR  else { return }
-            let part = partion(indexL: indexL, indexR: indexR)
-            quickSort(indexL: indexL, indexR: part)
-            quickSort(indexL: part + 1, indexR: indexR)
+        func partionSort(_ lowIndex: Index, highIndex: Index) {
+            guard lowIndex < highIndex else { return }
+            let partion = fetch(lowIndex, highIndex: highIndex)
+            partionSort(lowIndex, highIndex: partion)
+            partionSort(index(after: partion), highIndex: highIndex)
         }
-        quickSort(indexL: startIndex, indexR: index(before: count))
+        partionSort(startIndex, highIndex: index(before: endIndex))
     }
 }
+
+var integers = [Int]()
+(1...10).forEach { _ in
+    let randomNumber = Int.random(in: 1...1_000)
+    integers.append(randomNumber)
+}
+integers.quickSort(<)
+print(integers)
+var letters = ["a", "c", "b"]
+letters.quickSort(>)
+print(letters)
