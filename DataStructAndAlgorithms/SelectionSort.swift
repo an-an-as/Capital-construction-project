@@ -56,38 +56,44 @@ func selectionSort(items: [Int]) -> [Int] {
 var temp = [2, 5, 1]
 print(selectionSort(items: temp))
 
-/// [2, 5, 1]   min = 2      [2, 5, 1]      min = 1   --->  [1, 5, 2]
-//      n                           n
-//   c                              c
-//   i
+/********************************************* version2 ******************************************************/
+//  traversal 1
+/// [2, 5, 1]  --->    [2, 5, 1]        swap --->  [1, 5, 2]
+//      nI                    nI        探测最小值
+//   sE                       sE = 1    记录当前最小值用于后续比较、如果比该值小就交换刚才的index值
+//   sI                       sI = nI   记录当前最小值用于和index交换
+//   I                  I               index存储无序数组中的最小的值
 
-/// [1, 5, 2]   min = 1      [1, 5, 2]      min = 2   --->  [1, 2, 5]
-//      n                           n
-//   c                              c
-//      i
-extension Array where Element: Comparable {
-    public mutating func selectionSort(sort: (Element, Element) -> Bool) {
-        for index in 0..<count {
-            var cursor = index
-            var next = index + 1
-            var candicate = self[index]
-            while next < count {
-                if sort(self[next], candicate) {
-                    candicate = self[next]
-                    cursor = next
+//  traversal 2
+/// [1, 5, 2] swap --->  [1, 2, 5]      隔离出1 开始后续无序数组的选择
+//         nI                   nI
+//      sE                   sE
+//      sI                   sI
+//       I                    I
+extension Array {
+    mutating func selectionSort(_ sort: @escaping(Element, Element) -> Bool) {
+        indices.forEach {
+            var next = index(after: $0)
+            var min = ($0, self[$0])
+            while next < endIndex {
+                if sort(self[next], min.1) {
+                    min.0 = next
+                    min.1 = self[next]
                 }
-                next += 1
+                next = index(after: next)
             }
-            if index != cursor {
-                swapAt(index, cursor)
-            }
+            if next != min.0 { swapAt($0, min.0) }
         }
     }
 }
-var array = [Int]()
-(0...10).forEach { _ in
-    let num = Int(arc4random() % 100)
-    array.append(num)
+var integers = [Int]()
+(1...10).forEach { _ in
+    let randomNumber = Int.random(in: 1...1_000)
+    integers.append(randomNumber)
 }
-array.selectionSort(sort: <)
-print(array)
+print(integers)
+integers.selectionSort(<)
+print(integers)
+var letters = ["c", "a", "b"]
+letters.selectionSort(<)
+print(letters)
