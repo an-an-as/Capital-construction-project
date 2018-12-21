@@ -325,3 +325,65 @@ print(list)
 print(list.vertices.sorted())
 print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR): \($0.weight)" }.joined(separator: "\n"))
 list.getWeight(source: "a", destination: "b").map { print($0) }
+
+// MARK: - Version5(swift4.2)
+public enum Directable {
+    case directed
+    case undirected
+}
+public struct Edge {
+    var vertexL: String
+    var vertexR: String
+    var weight: Int
+}
+extension Edge: Equatable {
+    public static func == (lhs: Edge, rhs: Edge) -> Bool {
+        return lhs.vertexL == rhs.vertexL && lhs.vertexR == rhs.vertexR && lhs.weight == rhs.weight
+    }
+}
+extension Edge: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(vertexL)
+        hasher.combine(vertexR)
+        hasher.combine(weight)
+    }
+}
+public struct AdjacencyListGraph {
+    private(set) var edges = Set<Edge>()
+    private(set) var vertices = Set<String>()
+}
+extension AdjacencyListGraph {
+    mutating func addEdge(_ source: String, destination: String, weight: Int, directable: Directable = .directed) {
+        vertices.insert(source)
+        vertices.insert(destination)
+        edges.insert(Edge(vertexL: source, vertexR: destination, weight: weight))
+        switch directable {
+        case .directed: return
+        case .undirected: edges.insert(Edge(vertexL: destination, vertexR: source, weight: weight))
+        }
+    }
+    func getWeight(source: String, destination: String) -> Int? {
+        for element in edges where element.vertexL == source && element.vertexR == destination {
+            return element.weight
+        }
+        return nil
+    }
+}
+extension AdjacencyListGraph: CustomStringConvertible {
+    public var description: String {
+        var str = ""
+        for element in edges {
+            str += "\(element.vertexL)-\(element.vertexR): \(element.weight)\n"
+        }
+        return str
+    }
+}
+var list = AdjacencyListGraph()
+list.addEdge("a", destination: "b", weight: 1, directable: .undirected)
+list.addEdge("a", destination: "c", weight: 2, directable: .undirected)
+list.addEdge("a", destination: "d", weight: 3_000)
+print(list)
+print(list.vertices.sorted(), terminator: "\n\n")
+print(list.vertices.intersection(list.edges.map { $0.vertexL }).sorted(),terminator: "\n\n")
+print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR): \($0.weight)" }.joined(separator: "\n"))
+list.getWeight(source: "a", destination: "b").map { print("\n\($0)") }
