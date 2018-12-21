@@ -1,12 +1,3 @@
-v/**
- | Operation       | Adjacency List | Adjacency Matrix |
- |-----------------|----------------|------------------|
- | Storage Space   | O(V + E)       | O(V^2)           |
- | Add Vertex      | O(1)           | O(V^2)           |
- | Add Edge        | O(1)           | O(1)             |
- | Check Adjacency | O(V)           | O(1)             |
- */
-// swiftlint:disable identifier_name line_length
 import Foundation
 public struct Vertex<T>: Equatable where T: Hashable {
     public var data: T
@@ -91,7 +82,7 @@ struct AdjacencyListGraph<T> where T: Hashable {         /// adjacencyList      
         if matchingVertices.count > 0 {
             return matchingVertices.last!
         }
-        let vertex = Vertex(data: data, index: adjacencyList.count)       ///   EdgeList [ lista vertex(data:a index:0) [edges?]-> From:a To:b Weight:1.0 From:a To:c Weight:-5.5
+        let vertex = Vertex(data: data, index: adjacencyList.count)       ///   EdgeList [ lista vertex(data:a index:0) [edges?]
         adjacencyList.append(EdgeList(vertex: vertex))                    ///              listb vertex(data:b index:1) [edges?]-> From:b To:c Weight:2.0
         return vertex                                                     ///              listc vertex(data:b index:a) [edges?]
     }                                                                     ///            ]
@@ -139,18 +130,16 @@ struct AdjacencyListGraph<T> where T: Hashable {         /// adjacencyList      
         return rows.joined(separator: "\n")
     }
 }
-
 var graph = AdjacencyListGraph<String>()
 let a = graph.createVertex("a")
 let b = graph.createVertex("b")
 let c = graph.createVertex("c")
-
 graph.addDirectedEdge(a, to: b, withWeight: 1.0)
 graph.addDirectedEdge(b, to: c, withWeight: 2.0)
 graph.addDirectedEdge(a, to: c, withWeight: -5.5)
-
 print(graph.description)
-/********************* version 2 ************************/
+
+//MARK: - Version2
 public struct AdjacencyListGraph<T: Hashable> {
     private var list = [AdjacencyList<T>]()
 }
@@ -230,7 +219,8 @@ let targetC = graph.createVertex("C")
 graph.addDirectEdge(source: targetA, destination: targetB, weight: 100)
 graph.addDirectEdge(source: targetA, destination: targetC, weight: 200)
 print(graph.getWeight(source: targetA, destination: targetC))
-/****** version3 ******/
+
+//MARK: - Version3
 public struct Edge<T> {
     public var vertex1: T
     public var vertex2: T
@@ -269,3 +259,69 @@ extension AdjacencyListGraph: CustomStringConvertible {
         return str
     }
 }
+
+// MARK: - Version4
+// swiftlint:disable identifier_name line_length
+public enum Directable {
+    case directed
+    case undirected
+}
+/// - Complexity:
+/// ```
+/// | Operation       | Adjacency List | Adjacency Matrix |
+/// |-----------------|----------------|------------------|
+/// | Storage Space   | O(V + E)       | O(V^2)           |
+/// | Add Vertex      | O(1)           | O(V^2)           |
+/// | Add Edge        | O(1)           | O(1)             |
+/// | Check Adjacency | O(V)           | O(1)             |
+/// ```
+public struct AdjacencyListGraph<Vertex: Hashable, Weight> {
+    typealias Edge = (vertexL: Vertex, vertexR: Vertex, weight: Weight)
+    private(set) var edges: [Edge]
+    private(set) var vertices: Set<Vertex>
+    private(set) var list: [Vertex: [(Vertex, weight: Weight)]]
+    init() {
+        edges = [Edge]()
+        vertices = Set<Vertex>()
+        list = [Vertex: [(Vertex, weight: Weight)]]()
+    }
+}
+extension AdjacencyListGraph {
+    mutating func addEdge(_ source: Vertex, destination: Vertex, weight: Weight, directable: Directable = .directed) {
+        vertices.insert(source)
+        vertices.insert(destination)
+        edges.append(Edge(vertexL: source, vertexR: destination, weight: weight))
+        switch directable {
+        case .directed:
+            list[source] = list[source] ?? []
+            list[source]?.append( (destination, weight: weight) )
+        case .undirected:
+            list[destination] = list[destination] ?? []
+            list[destination]?.append( (source, weight: weight) )
+            edges.append(Edge(vertexL: destination, vertexR: source, weight: weight))
+        }
+    }
+    func getWeight(source: Vertex, destination: Vertex) -> Weight? {
+        for element in edges where element.vertexL == source && element.vertexR == destination {
+            return element.weight
+        }
+        return nil
+    }
+}
+extension AdjacencyListGraph: CustomStringConvertible {
+    public var description: String {
+        var str = ""
+        for element in edges {
+            str += "\(element.vertexL)-\(element.vertexR): \(element.weight)\n"
+        }
+        return str
+    }
+}
+var list = AdjacencyListGraph<String,Int>()
+list.addEdge("a", destination: "b", weight: 1, directable: .undirected)
+list.addEdge("a", destination: "c", weight: 2, directable: .undirected)
+list.addEdge("a", destination: "d", weight: 3_000, directable: .directed)
+print(list)
+print(list.vertices.sorted())
+print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR): \($0.weight)" }.joined(separator: "\n"))
+list.getWeight(source: "a", destination: "b").map { print($0) }
