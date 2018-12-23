@@ -4,7 +4,7 @@
  
  **注意**: 满足协议的类型必须确保满足文档所要求的 O(1) 复杂度.
  + 可以通过(index(_:offsetBy:)方法,以任意距离移动一个索引;
- + 通过distance(from:to:)方法,测量任意两个缩影间的距离;
+ + 通过distance(from:to:)方法,测量任意两个索引间的距离;
  + 或者是通过使用一个满足 Strideable 的 Index 类型 (像是 Int)来实现.
  
  **区别**: 非线性操作
@@ -66,3 +66,45 @@ arr.reversed().binarySearching(value: "a", precondition: >).map{ print($0) } ///
 debugPrint(arr.reversed().binarySearching(value: "f", precondition: >) == arr.reversed().startIndex) ///true
 debugPrint (arr[2...5].startIndex ) ///2
 arr[2...5].binarySearched(value: "f").map{ print("sliceIndex:\($0)") }///sliceIndex:5
+
+///- Version: 2
+extension RandomAccessCollection where Element: Comparable {
+    /// 不断缩小范围直到CursorL和CursorR重合
+    /// 1. 如果目标值大于重合值CursorL右移后 CursorL > cursorR
+    /// 2. 如果目标值小于重合值CursorR左移后 CursorL > cursorR
+    func binarySearching(_ value: Element, precondition: @escaping(Element, Element) -> Bool) -> Index? {
+        var cursorL = startIndex
+        var cursorR = endIndex
+        while cursorL < cursorR {
+            let steps = distance(from: cursorL, to: cursorR)
+            let midIndex = index(cursorL, offsetBy: steps / 2)
+            let candidate = self[midIndex]
+            if precondition(candidate, value) {
+                cursorL = index(after: midIndex)
+            } else if precondition(value, candidate) {
+                cursorR = midIndex
+            } else {
+                return midIndex
+            }
+        }
+        return nil
+    }
+    /// 不断缩小范围直到CursorL和CursorR重合
+    /// 1. 如果目标值大于重合值CursorL右移后 CursorL > cursorR 返回CursorL 在目标值的左侧
+    /// 2. 如果目标值小于重合值CursorR左移后 CursorL > cursorR 返回CursorL 在目标值的右侧
+    func binarySearching(_ value: Element) -> Index {
+        var cursorL = startIndex
+        var cursorR = endIndex
+        while cursorL < cursorR {
+            let steps = distance(from: cursorL, to: cursorR)
+            let midIndex = index(cursorL, offsetBy: steps / 2)
+            let candidate = self[midIndex]
+            if value > candidate {
+                cursorL = index(after: midIndex)
+            } else {
+                cursorR = midIndex
+            }
+        }
+        return cursorL
+    }
+}

@@ -327,6 +327,7 @@ print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR):
 list.getWeight(source: "a", destination: "b").map { print($0) }
 
 // MARK: - Version5(swift4.2)
+// MARK: - Version5(swift4.2)
 public enum Directable {
     case directed
     case undirected
@@ -362,12 +363,6 @@ extension AdjacencyListGraph {
         case .undirected: edges.insert(Edge(vertexL: destination, vertexR: source, weight: weight))
         }
     }
-    func getWeight(source: String, destination: String) -> Int? {
-        for element in edges where element.vertexL == source && element.vertexR == destination {
-            return element.weight
-        }
-        return nil
-    }
 }
 extension AdjacencyListGraph: CustomStringConvertible {
     public var description: String {
@@ -386,4 +381,5 @@ print(list)
 print(list.vertices.sorted(), terminator: "\n\n")
 print(list.vertices.intersection(list.edges.map { $0.vertexL }).sorted(),terminator: "\n\n")
 print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR): \($0.weight)" }.joined(separator: "\n"))
-list.getWeight(source: "a", destination: "b").map { print("\n\($0)") }
+print(list.edges.filter { $0.vertexL == "a" && $0.vertexR == "b" }.map { $0.weight })
+
