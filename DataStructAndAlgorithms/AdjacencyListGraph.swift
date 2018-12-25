@@ -327,7 +327,6 @@ print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR):
 list.getWeight(source: "a", destination: "b").map { print($0) }
 
 // MARK: - Version5(swift4.2)
-// MARK: - Version5(swift4.2)
 public enum Directable {
     case directed
     case undirected
@@ -382,4 +381,3 @@ print(list.vertices.sorted(), terminator: "\n\n")
 print(list.vertices.intersection(list.edges.map { $0.vertexL }).sorted(),terminator: "\n\n")
 print(list.edges.filter { $0.vertexL == "a"}.map { "\($0.vertexL)-\($0.vertexR): \($0.weight)" }.joined(separator: "\n"))
 print(list.edges.filter { $0.vertexL == "a" && $0.vertexR == "b" }.map { $0.weight })
-
