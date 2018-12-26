@@ -1,5 +1,4 @@
 /**
-
  Harold H. Seward 1954
  计数排序是一种非常快捷的稳定性强的排序方法，时间复杂度O(n+k),其中n为要排序的数的个数，k为要排序的数的组大值。
  计数排序对一定量的整数排序时候的速度非常快，一般快于其他排序算法。
@@ -40,7 +39,6 @@
  不稳定：如果a原本在b的前面，而a=b，排序之后 a 可能会出现在 b 的后面。
  时间复杂度：对排序数据的总的操作次数。反映当n变化时，操作次数呈现什么规律。
  空间复杂度：是指算法在计算机内执行时所需存储空间的度量，它也是数据规模n的函数。
- 
  */
 func countingSort(_ array: [Int]) -> [Int] {
     guard array.count > 0 else {return []}  /// [3, 2, 5, 1]
@@ -81,8 +79,8 @@ extension Array where Element == Int {
         }
         var storedArray = [Element](repeating: 0, count: count)
         self.forEach {
-            countArray[$0] -= 1
-            storedArray[countArray[$0]] = $0
+            countArray[$0] -= 1                            /// 计算该数字存放位置(通过计算比自身小的数字的个数)
+            storedArray[countArray[$0]] = $0               /// 例如3, 2, 5, 1 sum包含自身除去后比5小的数字有3个
         }
         replaceSubrange(startIndex..<endIndex, with: storedArray)
     }
