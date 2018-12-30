@@ -159,3 +159,105 @@ print(result.cost)
 ///                                                                                             |                                由于按顺序从小添加, a-b a-c避免回路
 ///  如果 size a > c 合并到c  c > d 合并到d  有新的节点(size 默认1)就会一直传递  新的下标通过前一个下标存储 storage[a] = c  storage[c] = d
 ///
+
+///-Version: 2
+struct UnionFind<Element: Hashable> {
+    private var index = [Element: Int]()
+    private var parentIndex = [Int]()
+    private var comboSize = [Int]()
+}
+extension UnionFind {
+    mutating func initial(_ newElement: Element) {
+        index[newElement] = parentIndex.count
+        parentIndex.append(parentIndex.count)
+        comboSize.append(1)
+    }
+}
+extension UnionFind {
+    mutating func parentIndex(of element: Element) -> Int? {
+        guard let index = index[element] else { return nil}
+        func getParentIndex(_ index: Int) -> Int {
+            if parentIndex[index] == index {
+                return index
+            } else {
+                parentIndex[index] = parentIndex[parentIndex[index]]
+            }
+            return parentIndex[index]
+        }
+        return getParentIndex(index)
+    }
+}
+extension UnionFind {
+    mutating func hasSameIndex(_ lhs: Element, _ rhs: Element) -> Bool {
+        guard parentIndex(of: lhs) == parentIndex(of: rhs) else { return false }
+        return true
+    }
+}
+extension UnionFind {
+    mutating func union(_ first: Element, second: Element) {
+        guard first != second else { return }
+        guard let parentIndexA = parentIndex(of: first), let parentIndexB = parentIndex(of: second) else { return }
+        if comboSize[parentIndexA] > comboSize[parentIndexB] {
+            parentIndex[parentIndexA] = parentIndexB
+            comboSize[parentIndexB] += comboSize[parentIndexA]
+        } else {
+            parentIndex[parentIndexB] = parentIndexA
+            comboSize[parentIndexA] += comboSize[parentIndexB]
+        }
+    }
+}
+enum Directable {
+    case directable
+    case Undirectable
+}
+struct AdjacencyLinkedList<Vertex: Hashable, Weight: Comparable> {
+    typealias Edge = (Vertex, Vertex, Weight)
+    fileprivate(set) var edges = [Edge]()
+    fileprivate(set) var vertices = Set<Vertex>()
+    fileprivate(set) var list = [Vertex: [(Vertex, Weight)]]()
+}
+extension AdjacencyLinkedList {
+    mutating func addEdge(_ source: Vertex, destination: Vertex, weight: Weight, directable: Directable = .directable) {
+        vertices.insert(source)
+        vertices.insert(destination)
+        edges.append((source, destination, weight))
+        switch directable {
+        case .directable:
+            list[source] = list[source] ?? []
+            list[source]?.append((destination, weight))
+        case .Undirectable:
+            list[destination] = list[destination] ?? []
+            list[destination]?.append((source, weight))
+            edges.append((destination, source, weight))
+        }
+    }
+}
+extension AdjacencyLinkedList: CustomDebugStringConvertible {
+    var debugDescription: String {
+        var description = ""
+        edges.forEach {
+            description += "\($0.0)-\($0.1): \($0.2)\n"
+        }
+        return description
+    }
+}
+func minimunSpanTree (_ graph: AdjacencyLinkedList<String, Int>) -> (cost: Int, tree: AdjacencyLinkedList<String, Int>) {
+    var cost = 0
+    var tree = AdjacencyLinkedList<String, Int>()
+    var unionFind = UnionFind<String>()
+    graph.vertices.forEach { unionFind.initial($0) }
+    graph.edges.sorted(by: { $0.2 < $1.2 }).forEach {
+        guard !unionFind.hasSameIndex($0.0, $0.1) else { return }
+        cost += $0.2
+        tree.addEdge($0.0, destination: $0.1, weight: $0.2)
+        unionFind.union($0.0, second: $0.1)
+    }
+    return (cost, tree)
+}
+var list = AdjacencyLinkedList<String, Int>()
+list.addEdge("a", destination: "b", weight: 1)
+list.addEdge("a", destination: "c", weight: 2)
+list.addEdge("b", destination: "c", weight: 3)
+list.addEdge("c", destination: "d", weight: 4)
+print(list)
+print(minimunSpanTree(list).tree)
