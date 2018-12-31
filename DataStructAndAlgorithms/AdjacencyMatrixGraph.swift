@@ -1,4 +1,4 @@
-v/**
+/**
  | Operation       | Adjacency List | Adjacency Matrix |
  |-----------------|----------------|------------------|
  | Storage Space   | O(V + E)       | O(V^2)           |
@@ -138,7 +138,8 @@ extension Queue {
         return operation.popLast()
     }
 }
-/************   version 2 ***************/
+
+// MARK: - Version: 2
 import Foundation
 public struct Vertex<T: Hashable>: Equatable {
     var data: T
@@ -236,81 +237,58 @@ graph.addUnDirectEdge(vertices: (vertexA, vertexB), weight: 1)
 graph.addDirectEdge(lhs: vertexA, rhs: vertexC, weight: 2.0)
 print(graph.debugDescription)
 print(graph.weightFrom(vertexA, to: vertexB)!)
- /***************** version 2 ******************/
-import Foundation
-public struct AdjacencyMatrixGraph<T: Hashable> {
-    typealias ColumnVertices = [Double?]
-    fileprivate var matrix = [ColumnVertices]()
-    fileprivate var vertices = [Vertex<T>]()
+
+// MARK: - Version: 3
+enum Direction {
+    case directed
+    case unDirected
 }
-extension AdjacencyMatrixGraph {
-    public struct Vertex<T: Hashable>: Equatable {
-        var data: T
-        let indexInMatrix: Int
-    }
-    public struct Edge<T: Hashable>: Equatable {
-        let vertexL: Vertex<T>
-        let vertexR: Vertex<T>
-        let weight: Double?
-    }
+struct AdjacencyMatrix<Vertex: Hashable, Weight: Comparable> {
+    typealias Edge = (Vertex, Vertex, Weight)
+    var edges = [Edge]()
+    var vertices = Set<Vertex>()
+    var matrix = [[Weight?]]()
+    var index = [Vertex: Int]()
 }
-extension AdjacencyMatrixGraph {
-    var edges: [Edge<T>] {
-        var temp = [Edge<T>]()
-        for columnIndex in 0..<matrix.count {
-            for rowIndex in 0..<matrix.count {
-                if let weight = matrix[columnIndex][rowIndex] {
-                    temp.append(Edge(vertexL: vertices[columnIndex], vertexR: vertices[rowIndex], weight: weight))
-                }
-            }
+extension AdjacencyMatrix {
+    mutating func addVertex(_ vertex: Vertex) {
+        matrix.indices.forEach {
+            matrix[$0].append(nil)
         }
-        return temp
-    }
-}
-extension AdjacencyMatrixGraph {
-    public mutating func createVertexAndInitialMatrix(_ newData: T) -> Vertex<T> {
-        let matchingVertex = vertices.filter { $0.data == newData }
-        if matchingVertex.count > 0 {
-            return matchingVertex.last!
-        }
-        for index in 0..<matrix.count {
-            matrix[index].append(nil)
-        }
-        let newVertex = Vertex(data: newData, indexInMatrix: matrix.count)
-        let newRow = ColumnVertices(repeating: nil, count: matrix.count + 1)
-        vertices.append(newVertex)
+        index[vertex] = matrix.count
+        let newRow = [Weight?](repeating: nil, count: matrix.count.advanced(by: 1))
         matrix.append(newRow)
-        return newVertex
     }
-}
-extension AdjacencyMatrixGraph {
-    mutating func addDirectedEdge(lhs: Vertex<T>, rhs: Vertex<T>, weight: Double?) {
-        matrix[lhs.indexInMatrix][rhs.indexInMatrix] = weight
-    }
-    mutating func addUndirectEdge(_ vertices: (Vertex<T>, Vertex<T>), weight: Double?) {
-        addDirectedEdge(lhs: vertices.0, rhs: vertices.1, weight: weight)
-        addDirectedEdge(lhs: vertices.1, rhs: vertices.0, weight: weight)
-    }
-}
-extension AdjacencyMatrixGraph {
-    func getWeight(source: Vertex<T>, destination: Vertex<T>) -> Double? {
-        return matrix[source.indexInMatrix][destination.indexInMatrix]
-    }
-    func getEdges(from source: Vertex<T>) -> [Edge<T>] {
-        var edges = [Edge<T>]()
-        for rowIndex in 0..<matrix.count {
-            if let weight = matrix[source.indexInMatrix][rowIndex] {
-                edges.append(Edge(vertexL: vertices[source.indexInMatrix], vertexR: vertices[rowIndex], weight: weight))
-            }
+    mutating func addEdge(_ source: Vertex, destination: Vertex, weight: Weight, direction: Direction = .directed) {
+        if vertices.insert(source).inserted { addVertex(source) }
+        if vertices.insert(destination).inserted { addVertex(destination) }
+        guard let sourceIndex = index[source], let destinationIndex = index[destination] else { return }
+        matrix[sourceIndex][destinationIndex] = weight
+        edges.append((source, destination, weight))
+        switch direction {
+        case.directed: return
+        case.unDirected:
+            edges.append((destination, source, weight))
+            matrix[destinationIndex][sourceIndex] = weight
         }
-        return edges
+    }
+    mutating func getWeight(_ source: Vertex, destination: Vertex) -> Weight? {
+        guard let sourceIndex = index[source], let destinationIndex = index[destination] else { return nil }
+        return matrix[sourceIndex][destinationIndex]
     }
 }
-var graph = AdjacencyMatrixGraph<String>()
-let beijing = graph.createVertexAndInitialMatrix("北京")
-let shanghai = graph.createVertexAndInitialMatrix("上海")
-let shenzhen = graph.createVertexAndInitialMatrix("深圳")
-graph.addDirectedEdge(lhs: beijing, rhs: shanghai, weight: 1_213)
-graph.addDirectedEdge(lhs: shanghai, rhs: shenzhen, weight: 1_427)
-print(graph.debugDescription)
-print(graph.getWeight(source: beijing, destination: shanghai))
+extension AdjacencyMatrix: CustomDebugStringConvertible {
+    var debugDescription: String {
+        var literal = ""
+        edges.forEach {
+            literal += "\($0.0)-\($0.1): \($0.2)\n"
+        }
+        return literal
+    }
+}
+var matrix = AdjacencyMatrix<String, Int>()
+matrix.addEdge("a", destination: "b", weight: 1)
+matrix.addEdge("a", destination: "c", weight: 2)
+matrix.addEdge("b", destination: "c", weight: 3, direction: .unDirected)
+print(matrix)
+print(matrix.getWeight("c", destination: "b")!)
