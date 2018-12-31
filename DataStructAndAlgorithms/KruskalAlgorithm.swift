@@ -221,10 +221,10 @@ extension AdjacencyLinkedList {
         vertices.insert(source)
         vertices.insert(destination)
         edges.append((source, destination, weight))
+        list[source] = list[source] ?? []
+        list[source]?.append((destination, weight))
         switch directable {
-        case .directable:
-            list[source] = list[source] ?? []
-            list[source]?.append((destination, weight))
+        case .directable: return
         case .Undirectable:
             list[destination] = list[destination] ?? []
             list[destination]?.append((source, weight))
