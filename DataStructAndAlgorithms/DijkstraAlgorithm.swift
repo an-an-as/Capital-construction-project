@@ -59,79 +59,80 @@ public class Dijkstra {
         }
     }
 }
-
-var vertices: Set<Vertex> = Set()
-
-func createNotConnectedVertices() {
-    //change this value to increase or decrease amount of vertices in the graph
-    let numberOfVerticesInGraph = 15
-    for i in 0..<numberOfVerticesInGraph {
-        let vertex = Vertex(identifier: "\(i)")
-        vertices.insert(vertex)
-    }
+// MARK: - VERSION 2
+struct ShortestPath {
+    var vertices = Set<Vertex>()
 }
-
-func setupConnections() {
-    for vertex in vertices {
-        //the amount of edges each vertex can have
-        let randomEdgesCount = arc4random_uniform(4) + 1
-        for _ in 0..<randomEdgesCount {
-            //randomize weight value from 0 to 9
-            let randomWeight = Double(arc4random_uniform(10))
-            let neighborVertex = randomVertex(except: vertex) ///获取临近的节点
-            //we need this check to set only one connection between two equal pairs of vertices
-            if vertex.neighbors.contains(where: { $0.0 == neighborVertex }) { ///如果存在相同节点就跳过
-                continue
-            }
-            //creating neighbors and setting them
-            let neighbor1 = (neighborVertex, randomWeight)
-            let neighbor2 = (vertex, randomWeight)
-            vertex.neighbors.append(neighbor1)
-            neighborVertex.neighbors.append(neighbor2)
+extension ShortestPath {
+    final class Vertex {
+        var identifier: String
+        var adjacency: [(Vertex, Double)]
+        var pathFromStart: (length: Double, member: [Vertex])
+        init(identifier: String) {
+            self.identifier = identifier
+            adjacency = [(Vertex, Double)]()
+            pathFromStart.length = Double.infinity
+            pathFromStart.member = [Vertex]()
+        }
+        func clearPathInfo() {
+            pathFromStart.length = Double.infinity
+            pathFromStart.member = []
         }
     }
 }
-
-func randomVertex(except vertex: Vertex) -> Vertex {
-    var newSet = vertices
-    newSet.remove(vertex)///如果存在相同节点删除
-    let offset = Int(arc4random_uniform(UInt32(newSet.count)))
-    let index = newSet.index(newSet.startIndex, offsetBy: offset)
-    return newSet[index]
+extension ShortestPath.Vertex: Equatable, Hashable, CustomDebugStringConvertible {
+    static func ==(lhs: ShortestPath.Vertex, rhs: ShortestPath.Vertex) -> Bool {
+        return lhs.identifier == rhs.identifier
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(identifier)
+    }
+    var debugDescription: String {
+        return "\(identifier)"
+    }
 }
-
-func randomVertex() -> Vertex {
-    let offset = Int(arc4random_uniform(UInt32(vertices.count)))
-    let index = vertices.index(vertices.startIndex, offsetBy: offset)
-    return vertices[index]
+extension ShortestPath {
+    mutating func clear() {
+        vertices.forEach { $0.clearPathInfo()}
+    }
+    mutating func relaxation(from source: Vertex) {
+        clear()
+        var currentVertex: Vertex? = source
+        var tempVertices = self.vertices
+        source.pathFromStart.member.append(source)
+        source.pathFromStart.length = 0
+        while let current_Vertex = currentVertex {
+            tempVertices.remove(current_Vertex)
+            for anotherVertex in current_Vertex.adjacency where tempVertices.contains(anotherVertex.0) {
+                let relaxedWeight = current_Vertex.pathFromStart.length + anotherVertex.1
+                if relaxedWeight < anotherVertex.0.pathFromStart.length {
+                    anotherVertex.0.pathFromStart.length = relaxedWeight
+                    anotherVertex.0.pathFromStart.member = current_Vertex.pathFromStart.member
+                    anotherVertex.0.pathFromStart.member.append(anotherVertex.0)
+                }
+            }
+            guard !tempVertices.isEmpty else {
+                currentVertex = nil
+                break
+            }
+            currentVertex = tempVertices.min(by: { (a, b) -> Bool in
+                a.pathFromStart.length < b.pathFromStart.length
+            })
+        }
+    }
 }
+let vertexA = ShortestPath.Vertex.init(identifier: "a")
+let vertexB = ShortestPath.Vertex.init(identifier: "b")
+let vertexC = ShortestPath.Vertex.init(identifier: "c")
 
-//initialize random graph
-createNotConnectedVertices()
-setupConnections()
+vertexA.adjacency.append((vertexB, 2))
+vertexB.adjacency.append((vertexC, 3))
+vertexA.adjacency.append((vertexC, 1))
 
-//initialize Dijkstra algorithm with graph vertices
-let dijkstra = Dijkstra(vertices: vertices)
+var path = ShortestPath()
+path.vertices.insert(vertexA)
+path.vertices.insert(vertexB)
+path.vertices.insert(vertexC)
+path.relaxation(from: vertexA)
 
-//decide which vertex will be the starting one
-let startVertex = randomVertex()
-
-let startTime = Date()
-
-//ask algorithm to find shortest paths from start vertex to all others
-dijkstra.findShortestPaths(from: startVertex)
-
-let endTime = Date()
-
-print("calculation time is = \((endTime.timeIntervalSince(startTime))) sec")
-
-//printing results
-let destinationVertex = randomVertex(except: startVertex)
-print(destinationVertex.pathLengthFromStart)
-var pathVerticesFromStartString: [String] = []
-for vertex in destinationVertex.pathVerticesFromStart {
-    pathVerticesFromStartString.append(vertex.identifier)
-}
-
-print(pathVerticesFromStartString.joined(separator: "->"))
-
+print(vertexC.pathFromStart.member)
