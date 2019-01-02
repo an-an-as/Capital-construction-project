@@ -71,29 +71,23 @@ print(selectionSort(items: temp))
 //      sI                   sI
 //       I                    I
 extension Array {
+    /// 多重遍历(通过局部Tuple存储当前最小值及其Index)
+    ///- complexity: O(n2)
     mutating func selectionSort(_ sort: @escaping(Element, Element) -> Bool) {
         indices.forEach {
-            var next = index(after: $0)
+            var nextIndex = index(after: $0)
             var min = ($0, self[$0])
-            while next < endIndex {
-                if sort(self[next], min.1) {
-                    min.0 = next
-                    min.1 = self[next]
+            while nextIndex < endIndex {
+                if sort(self[nextIndex], min.1)  {
+                    min.0 = nextIndex
+                    min.1 = self[nextIndex]
                 }
-                next = index(after: next)
+                formIndex(after: &nextIndex)
             }
-            if next != min.0 { swapAt($0, min.0) }
+            swapAt(min.0, $0)
         }
     }
 }
-var integers = [Int]()
-(1...10).forEach { _ in
-    let randomNumber = Int.random(in: 1...1_000)
-    integers.append(randomNumber)
-}
-print(integers)
+var integers = (1...10).map { _ in Int.random(in: 1...1_000) }
 integers.selectionSort(<)
 print(integers)
-var letters = ["c", "a", "b"]
-letters.selectionSort(<)
-print(letters)
