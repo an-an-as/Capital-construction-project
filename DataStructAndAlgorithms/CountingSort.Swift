@@ -69,27 +69,26 @@ print(countingSort(temp))                                     ///               
                                                                //  [1   2   3   5]
 /******************************* version2 **********************************/
 extension Array where Element == Int {
+    ///将无序的值作为数组的Index,并标记数量,统计小于当前值的个数即为数组中的位置
+    ///1. 建立默认值为0的数组Bucket,其个数为无序数组中的最大值
+    ///2. 遍历无序数组其值为Bucket的Index,在其Index下记录该值出现的次数
+    ///3. 遍历Bucket(从1开始)统计小于当前值的个数
+    ///- complexity: O(n + k)
     mutating func countSort() {
         guard let maxNumber = self.max() else { return }
-        var countArray = [Element](repeating: 0, count: maxNumber.advanced(by: 1))
-        self.forEach { countArray[$0] += 1 }
-        for index in 1..<countArray.endIndex {
-            let sum = countArray[index] + countArray[index - 1]
-            countArray[index] = sum
+        var bucket = [Element](repeating: 0, count: maxNumber.advanced(by: 1))
+        forEach { bucket[$0] += 1 }
+        (1..<bucket.endIndex).forEach {
+            let sum = bucket[$0] + bucket[$0 - 1]
+            bucket[$0] = sum
         }
-        var storedArray = [Element](repeating: 0, count: count)
-        self.forEach {
-            countArray[$0] -= 1                            /// 计算该数字存放位置(通过计算比自身小的数字的个数)
-            storedArray[countArray[$0]] = $0               /// 例如3, 2, 5, 1 sum包含自身除去后比5小的数字有3个
+        forEach {
+            bucket[$0] -= 1
+            self[bucket[$0]] = $0
         }
-        replaceSubrange(startIndex..<endIndex, with: storedArray)
     }
 }
-var integer = [Int]()
-(1...10).forEach { _ in
-    let randomNumber = Int.random(in: 1...1_000)
-    integer.append(randomNumber)
-}
-print(integer)
-integer.countSort()
-print(integer)
+var interges = (1...10).map { _ in Int.random(in: 1...1_000) }
+print(interges)
+interges.countSort()
+print(interges)
