@@ -220,7 +220,7 @@ func minimunSpanTree(_ graph: AdjacencyLinkedList<String, Int>) -> (cost: Int, t
         cost += head.weight
         head.parent.map { tree.addEdge($0, destination: head.vertex, weight: head.weight) }
         for edge in graph.edges.filter({ $0.0 == head.vertex }) where !visted.contains(edge.1) {
-            queue.enqueue((head.vertex, edge.1, edge.2))
+            queue.enqueue((edge.0, edge.1, edge.2))
         }
     }
     return (cost, tree)
