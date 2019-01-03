@@ -207,33 +207,20 @@ extension PriorityQueue {
         }
     }
 }
-struct NeighborVertex {
-    var vertex: String
-    var parent: String?
-    var weight: Int
-}
-extension NeighborVertex: Comparable {
-    static func == (lhs: NeighborVertex, rhs: NeighborVertex) -> Bool {
-        return lhs.weight == rhs.weight
-    }
-    static func < (lhs: NeighborVertex, rhs: NeighborVertex) -> Bool {
-        return lhs.weight < rhs.weight
-    }
-}
 func minimunSpanTree(_ graph: AdjacencyLinkedList<String, Int>) -> (cost: Int, tree: AdjacencyLinkedList<String, Int>) {
     var cost = 0
     var tree = AdjacencyLinkedList<String, Int>()
     var visted = Set<String>()
-    var queue = PriorityQueue<NeighborVertex>(priority: <)
+    var queue = PriorityQueue<(parent: String?, vertex: String, weight: Int)>(priority: { $0.2 < $1.2 })
     guard let start = graph.vertives.sorted().first else { return (cost, tree) }
-    queue.enqueue(NeighborVertex(vertex: start, parent: nil, weight: 0))
-    while let first = queue.dequeue() {
-        guard !visted.contains(first.vertex) else { continue }
-        visted.insert(first.vertex)
-        cost += first.weight
-        first.parent.map { tree.addEdge($0, destination: first.vertex, weight: first.weight) }
-        for edge in graph.edges.filter({ $0.0 == first.vertex }) where !visted.contains(edge.1) {
-            queue.enqueue(NeighborVertex(vertex: edge.1, parent: first.vertex, weight: edge.2))
+    queue.enqueue((nil, start, 0))
+    while let head = queue.dequeue() {
+        guard !visted.contains(head.vertex) else { continue }
+        visted.insert(head.vertex)
+        cost += head.weight
+        head.parent.map { tree.addEdge($0, destination: head.vertex, weight: head.weight) }
+        for edge in graph.edges.filter({ $0.0 == head.vertex }) where !visted.contains(edge.1) {
+            queue.enqueue((head.vertex, edge.1, edge.2))
         }
     }
     return (cost, tree)
