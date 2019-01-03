@@ -37,3 +37,22 @@ let out = arr.shuffled()
 print(arr,out, separator: "\n", terminator: "\n")
 ///[1, 2, 3, 4, 5]
 ///[4, 1, 5, 3, 2]
+
+///- Version: 2
+extension MutableCollection where Self: RandomAccessCollection {
+    mutating func shuffle() {
+        var cursorL = startIndex
+        let cursorR = index(before: endIndex)
+        while cursorL < cursorR {
+            let steps = distance(from: cursorL, to: cursorR)
+            let randomStep = Int.random(in: 1...steps)
+            let randomOffset = index(cursorL, offsetBy: randomStep)
+            swapAt(cursorL, randomOffset)
+            formIndex(after: &cursorL)
+        }
+    }
+}
+var integers = (1...10).map { _ in Int.random(in: 1...10) }.sorted()
+print(integers)
+integers.shuffle()
+print(integers)
