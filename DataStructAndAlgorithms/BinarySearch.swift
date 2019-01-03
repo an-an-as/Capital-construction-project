@@ -78,10 +78,9 @@ extension RandomAccessCollection where Element: Comparable {
         while cursorL < cursorR {
             let steps = distance(from: cursorL, to: cursorR)
             let midIndex = index(cursorL, offsetBy: steps / 2)
-            let candidate = self[midIndex]
-            if precondition(candidate, value) {
+            if precondition(self[midIndex], value) {
                 cursorL = index(after: midIndex)
-            } else if precondition(value, candidate) {
+            } else if precondition(value, self[midIndex]) {
                 cursorR = midIndex
             } else {
                 return midIndex
@@ -90,16 +89,15 @@ extension RandomAccessCollection where Element: Comparable {
         return nil
     }
     /// 不断缩小范围直到CursorL和CursorR重合
-    /// 1. 如果目标值大于重合值CursorL右移后 CursorL > cursorR 返回CursorL 在目标值的左侧
-    /// 2. 如果目标值小于重合值CursorR左移后 CursorL > cursorR 返回CursorL 在目标值的右侧
+    /// 1. 如果目标值大于重合值CursorL右移后 CursorL > cursorR 返回CursorL CursorL在重合位置右侧
+    /// 2. 如果目标值小于重合值CursorR左移后 CursorL > cursorR 返回CursorL CursorL在重合位置
     func binarySearching(_ value: Element) -> Index {
         var cursorL = startIndex
         var cursorR = endIndex
         while cursorL < cursorR {
             let steps = distance(from: cursorL, to: cursorR)
             let midIndex = index(cursorL, offsetBy: steps / 2)
-            let candidate = self[midIndex]
-            if value > candidate {
+            if value > self[midIndex] {
                 cursorL = index(after: midIndex)
             } else {
                 cursorR = midIndex
@@ -108,3 +106,5 @@ extension RandomAccessCollection where Element: Comparable {
         return cursorL
     }
 }
+var integers = [1, 3, 5, 7]
+print(integers.binarySearching(2))
