@@ -65,8 +65,51 @@ extension SortedArray {
     }
 }
 extension SortedArray: RandomAccessCollection {
-    public typealias Indices = CountableRange<Int>// 半开区间
+    public typealias Indices = CountableRange<Int>
     public var startIndex: Int { return storage.startIndex }
     public var endIndex: Int { return storage.endIndex }
     public subscript(index: Int) -> Element { return storage[index] }
 }
+///- Version: 2
+extension RandomAccessCollection where Element: Comparable {
+    func binarySearch(_ value: Element) -> Index {
+        var cursorL = startIndex
+        var cursorR = endIndex
+        while cursorL < cursorR {
+            let steps = distance(from: cursorL, to: cursorR)
+            let midIndex = index(cursorL, offsetBy: steps / 2)
+            if value > self[midIndex] {
+                cursorL = index(after: midIndex)
+            } else {
+                cursorR = midIndex
+            }
+        }
+        return cursorL
+    }
+}
+struct SortedArray<Element: Comparable> {
+    var storage = [Element]()
+}
+extension SortedArray: RandomAccessCollection {
+    var startIndex: Int {
+        return storage.startIndex
+    }
+    var endIndex: Int {
+        return storage.endIndex
+    }
+    subscript(pos: Int) -> Element {
+        return storage[pos]
+    }
+}
+extension SortedArray {
+    mutating func insert(_ newElement: Element) {
+        let index = binarySearch(newElement)
+        storage.insert(newElement, at: index)
+    }
+}
+var array = SortedArray<Int>()
+for _ in 1...10 {
+    let randomNum = Int.random(in: 1...10)
+    array.insert(randomNum)
+}
+print(array.storage)
