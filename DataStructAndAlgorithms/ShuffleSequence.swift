@@ -45,7 +45,7 @@ extension MutableCollection where Self: RandomAccessCollection {
         let cursorR = index(before: endIndex)
         while cursorL < cursorR {
             let steps = distance(from: cursorL, to: cursorR)
-            let randomStep = Int.random(in: 1...steps)
+            let randomStep = Int.random(in: 0...steps)
             let randomOffset = index(cursorL, offsetBy: randomStep)
             swapAt(cursorL, randomOffset)
             formIndex(after: &cursorL)
