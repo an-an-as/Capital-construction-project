@@ -160,7 +160,7 @@ print(result.cost)
 ///  如果 size a > c 合并到c  c > d 合并到d  有新的节点(size 默认1)就会一直传递  新的下标通过前一个下标存储 storage[a] = c  storage[c] = d
 ///
 
-///-Version: 2
+///- Version: 2
 struct UnionFind<Element: Hashable> {
     private var index = [Element: Int]()
     private var parentIndex = [Int]()
@@ -177,11 +177,8 @@ extension UnionFind {
     mutating func parentIndex(of element: Element) -> Int? {
         guard let index = index[element] else { return nil}
         func getParentIndex(_ index: Int) -> Int {
-            if parentIndex[index] == index {
-                return index
-            } else {
-                parentIndex[index] = parentIndex[parentIndex[index]]
-            }
+            guard parentIndex[index] != index else { return index }
+            parentIndex[index] = getParentIndex(parentIndex[index])
             return parentIndex[index]
         }
         return getParentIndex(index)
