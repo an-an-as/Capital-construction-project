@@ -471,3 +471,84 @@ vertexC.adjacent.append(vertexE)
 vertexD.adjacent.append(vertexF)
 print(graph.search(from: vertexA, by: .breadth))
 print(graph.search(from: vertexA, by: .deepth))
+
+// MARK: - Version 4
+struct Queue<Element> {
+    var storage = [Element?]()
+    var head = 0
+}
+extension Queue {
+    mutating func enqueue(_ newElement: Element) {
+        storage.append(newElement)
+    }
+    mutating func dequeue() -> Element? {
+        guard head < storage.count, let element = storage[head] else  { return nil }
+        storage[head] = nil
+        head += 1
+        if storage.count > 50 && (Double(head) / Double(storage.count)) > 0.25 {
+            storage.removeFirst(head)
+            head = 0
+        }
+        return element
+    }
+}
+enum Direction {
+    case undirected
+    case directed
+}
+struct Graph<Vertex: Hashable> {
+    typealias Edge = (Vertex, Vertex)
+    var edges = [Edge]()
+    var vertices = Set<Vertex>()
+}
+extension Graph {
+    mutating func addEdge(_ source: Vertex, destination: Vertex, direction: Direction = .directed) {
+        vertices.insert(source)
+        vertices.insert(destination)
+        edges.append((source, destination))
+        switch direction {
+        case .directed: return
+        case .undirected: edges.append((destination, source))
+        }
+    }
+}
+extension Graph: CustomDebugStringConvertible {
+    var debugDescription: String {
+        var literal = ""
+        edges.forEach {
+            literal += "\($0.0)-\($0.1)\n"
+        }
+        return literal
+    }
+}
+func breadthSearch<Vertex>(from: Vertex, in graph: Graph<Vertex>) -> [Vertex] {
+    var result = [Vertex]()
+    var queue = Queue<Vertex>()
+    guard let source = (graph.vertices.filter { $0 == from }.first) else { return [] }
+    queue.enqueue(source)
+    result.append(source)
+    while let vertex = queue.dequeue() {
+        graph.edges.filter { $0.0 == vertex }.forEach {
+            queue.enqueue($0.1)
+            result.append($0.1)
+        }
+    }
+    return result
+}
+func deepthSearch<Vertex>(from: Vertex, in graph: Graph<Vertex>) -> [Vertex] {
+    var result = [from]
+    for edge in (graph.edges.filter { $0.0 == from }) {
+        result += deepthSearch(from: edge.1, in: graph)
+    }
+    return result
+}
+var graph = Graph<String>()
+graph.addEdge("a", destination: "b")
+graph.addEdge("a", destination: "c")
+graph.addEdge("b", destination: "d")
+graph.addEdge("b", destination: "e")
+graph.addEdge("c", destination: "f")
+graph.addEdge("d", destination: "g")
+
+print(breadthSearch(from: "a", in: graph))
+print(deepthSearch(from: "a", in: graph))
