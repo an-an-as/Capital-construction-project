@@ -283,111 +283,316 @@ var arr = [Double](repeatElement(Double.infinity, count: 10))
 let flag = arr[0] + 1 < arr[1] // false
 let flag2 = arr[0] == arr[1]   // true
 print(flag2)
-/***************** version2 ****************/
-    public struct Vertex<T: Hashable>: Equatable {
-        var data: T
-        var indexInMarix: Int
-    }
-    public struct Edge<T: Hashable>: Equatable {
-        var vertexFrom: Vertex<T>
-        var vartexTo: Vertex<T>
-        var weight: Double?
-    }
-    public struct AdjacencyMatrixGraph<T: Hashable>: Equatable {
-        typealias ColumnVertices = [Double?]
-        var matrix = [ColumnVertices]()
-        var vertices = [Vertex<T>]()
-    }
-    extension AdjacencyMatrixGraph {
-        var edges: [Edge<T>] {
-            var temp = [Edge<T>]()
-            for columnIndex in 0..<matrix.count {
-                for rowIndex in 0..<matrix.count {
-                    if let weight = matrix[columnIndex][rowIndex] {
-                        temp.append(Edge(vertexFrom: vertices[columnIndex], vartexTo: vertices[rowIndex], weight: weight))
-                    }
+// MARK: - Version: 2
+public struct Vertex<T: Hashable>: Equatable {
+    var data: T
+    var indexInMarix: Int
+}
+public struct Edge<T: Hashable>: Equatable {
+    var vertexFrom: Vertex<T>
+    var vartexTo: Vertex<T>
+    var weight: Double?
+}
+public struct AdjacencyMatrixGraph<T: Hashable>: Equatable {
+    typealias ColumnVertices = [Double?]
+    var matrix = [ColumnVertices]()
+    var vertices = [Vertex<T>]()
+}
+extension AdjacencyMatrixGraph {
+    var edges: [Edge<T>] {
+        var temp = [Edge<T>]()
+        for columnIndex in 0..<matrix.count {
+            for rowIndex in 0..<matrix.count {
+                if let weight = matrix[columnIndex][rowIndex] {
+                    temp.append(Edge(vertexFrom: vertices[columnIndex], vartexTo: vertices[rowIndex], weight: weight))
                 }
             }
-            return temp
         }
+        return temp
     }
-    extension AdjacencyMatrixGraph {
-        mutating func createVertex(_ newValue: T) -> Vertex<T> {
-            let matchingVertex = vertices.filter { $0.data == newValue }
-            if matchingVertex.count > 0 {
-                return matchingVertex.last!
-            }
-            for columnIndex in 0..<matrix.count {
-                matrix[columnIndex].append(nil)
-            }
-            let newVertex = Vertex(data: newValue, indexInMarix: matrix.count)
-            let newRow = ColumnVertices(repeating: nil, count: matrix.count + 1)
-            vertices.append(newVertex)
-            matrix.append(newRow)
-            return newVertex
+}
+extension AdjacencyMatrixGraph {
+    mutating func createVertex(_ newValue: T) -> Vertex<T> {
+        let matchingVertex = vertices.filter { $0.data == newValue }
+        if matchingVertex.count > 0 {
+            return matchingVertex.last!
         }
+        for columnIndex in 0..<matrix.count {
+            matrix[columnIndex].append(nil)
+        }
+        let newVertex = Vertex(data: newValue, indexInMarix: matrix.count)
+        let newRow = ColumnVertices(repeating: nil, count: matrix.count + 1)
+        vertices.append(newVertex)
+        matrix.append(newRow)
+        return newVertex
     }
-    extension AdjacencyMatrixGraph {
-        mutating func addDirectEdge(lhs: Vertex<T>, rhs: Vertex<T>, weight: Double?) {
-            matrix[lhs.indexInMarix][rhs.indexInMarix] = weight
-        }
+}
+extension AdjacencyMatrixGraph {
+    mutating func addDirectEdge(lhs: Vertex<T>, rhs: Vertex<T>, weight: Double?) {
+        matrix[lhs.indexInMarix][rhs.indexInMarix] = weight
     }
-    extension AdjacencyMatrixGraph {
-        func getWeight(source: Vertex<T>, destination: Vertex<T>) -> Double? {
-            return matrix[source.indexInMarix][destination.indexInMarix]
-        }
-    }                                                                               /// predecessor A -> B  source = "A" indexInMarix = 0 weight = 2  "B" indexInMatrix = 1
-    extension AdjacencyMatrixGraph {                                                /// 0   1   2      --->   0   1   2
-        func apply(source: Vertex<T>) -> BellmanFordResult<T>? {                    /// 0   nil nil               0          vertexFromIndex
-            var predecessors = [Int?](repeating: nil, count: vertices.count)        ///
-            var weights = Array(repeating: Double.infinity, count: vertices.count)  /// weight               A   B   C  A - C 5 false
-            predecessors[source.indexInMarix] = source.indexInMarix                 /// 0   1   2      --->  0   1   2
-            weights[source.indexInMarix] = 0                                        /// 0  infi infi         0   2   3      vertexToIndex
-            for _ in 0..<vertices.count - 1 {                                       /// count - 1
-                var weightUpdated = false
-                edges.forEach {                                                     /// edges[A-B:2, B-C:1, A-C:5]
-                    let weight = $0.weight!
-                    let relaxDistance = weights[$0.vertexFrom.indexInMarix] + weight/// 100 < infi        true
-                    if relaxDistance < weights[$0.vartexTo.indexInMarix] {          /// infi + 100 < infi false
-                        predecessors[$0.vartexTo.indexInMarix] = $0.vertexFrom.indexInMarix
-                        weights[$0.vartexTo.indexInMarix] = relaxDistance
-                        weightUpdated = true
-                    }
+}
+extension AdjacencyMatrixGraph {
+    func getWeight(source: Vertex<T>, destination: Vertex<T>) -> Double? {
+        return matrix[source.indexInMarix][destination.indexInMarix]
+    }
+}                                                                               /// predecessor A -> B  source = "A" indexInMarix = 0 weight = 2  "B" indexInMatrix = 1
+extension AdjacencyMatrixGraph {                                                /// 0   1   2      --->   0   1   2
+    func apply(source: Vertex<T>) -> BellmanFordResult<T>? {                    /// 0   nil nil               0          vertexFromIndex
+        var predecessors = [Int?](repeating: nil, count: vertices.count)        ///
+        var weights = Array(repeating: Double.infinity, count: vertices.count)  /// weight               A   B   C  A - C 5 false
+        predecessors[source.indexInMarix] = source.indexInMarix                 /// 0   1   2      --->  0   1   2
+        weights[source.indexInMarix] = 0                                        /// 0  infi infi         0   2   3      vertexToIndex
+        for _ in 0..<vertices.count - 1 {                                       /// count - 1
+            var weightUpdated = false
+            edges.forEach {                                                     /// edges[A-B:2, B-C:1, A-C:5]
+                let weight = $0.weight!
+                let relaxDistance = weights[$0.vertexFrom.indexInMarix] + weight/// 100 < infi        true
+                if relaxDistance < weights[$0.vartexTo.indexInMarix] {          /// infi + 100 < infi false
+                    predecessors[$0.vartexTo.indexInMarix] = $0.vertexFrom.indexInMarix
+                    weights[$0.vartexTo.indexInMarix] = relaxDistance
+                    weightUpdated = true
                 }
-                guard weightUpdated else { break }
             }
-            for edge in edges where weights[edge.vartexTo.indexInMarix] > weights[edge.vertexFrom.indexInMarix] + edge.weight! { return nil } /// 是否存在负权回路
-            return BellmanFordResult(predecessors: predecessors, weights: weights)
+            guard weightUpdated else { break }
+        }
+        for edge in edges where weights[edge.vartexTo.indexInMarix] > weights[edge.vertexFrom.indexInMarix] + edge.weight! { return nil } /// 是否存在负权回路
+        return BellmanFordResult(predecessors: predecessors, weights: weights)
+    }
+}
+public struct BellmanFordResult<T: Hashable> {
+    fileprivate var predecessors: [Int?]
+    fileprivate var weights: [Double]
+}
+extension BellmanFordResult {
+    func distance(vertexTo: Vertex<T>) -> Double? {
+        let distance = weights[vertexTo.indexInMarix]
+        guard distance != Double.infinity else { return nil }
+        return distance
+    }
+    func recursePathTo(vertex: Vertex<T>, graph: AdjacencyMatrixGraph<T>) -> [Vertex<T>]? {
+        guard weights[vertex.indexInMarix] != Double.infinity else { return nil }
+        guard let predecessorIndex = predecessors[vertex.indexInMarix] else { return nil }
+        let prevVertex = graph.vertices[predecessorIndex]
+        if prevVertex.indexInMarix == vertex.indexInMarix { return [vertex] }                    /// predecessor    A    B    C
+        guard let buildPath = recursePathTo(vertex: prevVertex, graph: graph) else { return nil }///                0    1    2
+        return buildPath + [vertex]                                                              ///                0    0    1
+    }
+}
+var graph = AdjacencyMatrixGraph<String>()
+let vertexA = graph.createVertex("A")
+let vertexB = graph.createVertex("B")
+let vertexC = graph.createVertex("C")
+///       2
+graph.addDirectEdge(lhs: vertexA, rhs: vertexB, weight: 2)  ///   A ----- B
+graph.addDirectEdge(lhs: vertexB, rhs: vertexC, weight: 1)  ///   |       |  1
+graph.addDirectEdge(lhs: vertexA, rhs: vertexC, weight: 5)  ///   5------ C
+
+let bellManResult = graph.apply(source: vertexA)
+let vertexArray = bellManResult?.recursePathTo(vertex: vertexC, graph: graph)
+vertexArray?.forEach { print($0.data) } //A B C
+
+// MARK: - Version: 3
+enum Direction {
+    case directed
+    case unDirected
+}
+struct AdjacencyMatrix<Vertex: Hashable, Weight: Comparable> {
+    typealias Edge = (Vertex, Vertex, Weight)
+    var edges = [Edge]()
+    var vertices = Set<Vertex>()
+    var matrix = [[Weight?]]()
+    var index = [Vertex: Int]()
+}
+extension AdjacencyMatrix {
+    mutating func addVertex(_ vertex: Vertex) {
+        matrix.indices.forEach {
+            matrix[$0].append(nil)
+        }
+        index[vertex] = matrix.count
+        let newRow = [Weight?](repeating: nil, count: matrix.count.advanced(by: 1))
+        matrix.append(newRow)
+    }
+    mutating func addEdge(_ source: Vertex, destination: Vertex, weight: Weight, direction: Direction = .directed) {
+        if vertices.insert(source).inserted { addVertex(source) }
+        if vertices.insert(destination).inserted { addVertex(destination) }
+        guard let sourceIndex = index[source], let destinationIndex = index[destination] else { return }
+        matrix[sourceIndex][destinationIndex] = weight
+        edges.append((source, destination, weight))
+        switch direction {
+        case.directed: return
+        case.unDirected:
+            edges.append((destination, source, weight))
+            matrix[destinationIndex][sourceIndex] = weight
         }
     }
-    public struct BellmanFordResult<T: Hashable> {
-        fileprivate var predecessors: [Int?]
-        fileprivate var weights: [Double]
+    mutating func getWeight(_ source: Vertex, destination: Vertex) -> Weight? {
+        guard let sourceIndex = index[source], let destinationIndex = index[destination] else { return nil }
+        return matrix[sourceIndex][destinationIndex]
     }
-    extension BellmanFordResult {
-        func distance(vertexTo: Vertex<T>) -> Double? {
-            let distance = weights[vertexTo.indexInMarix]
-            guard distance != Double.infinity else { return nil }
-            return distance
+}
+extension AdjacencyMatrix: CustomDebugStringConvertible {
+    var debugDescription: String {
+        var literal = ""
+        edges.forEach {
+            literal += "\($0.0)-\($0.1): \($0.2)\n"
         }
-        func recursePathTo(vertex: Vertex<T>, graph: AdjacencyMatrixGraph<T>) -> [Vertex<T>]? {
-            guard weights[vertex.indexInMarix] != Double.infinity else { return nil }
-            guard let predecessorIndex = predecessors[vertex.indexInMarix] else { return nil }
-            let prevVertex = graph.vertices[predecessorIndex]
-            if prevVertex.indexInMarix == vertex.indexInMarix { return [vertex] }                    /// predecessor    A    B    C
-            guard let buildPath = recursePathTo(vertex: prevVertex, graph: graph) else { return nil }///                0    1    2
-            return buildPath + [vertex]                                                              ///                0    0    1
+        return literal
+    }
+}
+struct ShortestPath {
+    static var index = [String: Int]()
+    static var parentIndex = [Int?]()
+    static var vertices = [String?]()
+    static var weights = [Double]()
+    static func relaxion(graph: AdjacencyMatrix<String, Int>, source: String, destination: String) -> [String]? {
+        self.vertices = [String?](repeating: nil, count: graph.vertices.count)
+        for (cursor, element) in graph.vertices.enumerated() {
+            index[element] = cursor
+            self.vertices[cursor] = element
+        }
+        parentIndex = [Int?](repeating: nil, count: graph.vertices.count)
+        weights = [Double](repeating: Double.infinity, count: graph.vertices.count)
+        /// 递归到源点的的前驱下标 就是源点本身
+        parentIndex[index[source] ?? index.count] = index[source] ?? index.count
+        weights[index[source] ?? index.count] = 0
+        for _ in 1...graph.vertices.count - 1 {
+            var weightsUpdated = false
+            graph.edges.forEach { /// 遍历到source开始松弛计算
+                let edge = (sourceIndex: index[$0.0] ?? index.count, destinationIndex: index[$0.1] ?? index.count, weight: $0.2)
+                let relaxedDistance = weights[edge.sourceIndex] + Double(edge.weight)
+                if relaxedDistance < weights[edge.destinationIndex] {
+                    parentIndex[edge.destinationIndex] = edge.sourceIndex
+                    weights[edge.destinationIndex] = relaxedDistance
+                    weightsUpdated = true
+                }
+            }
+            guard weightsUpdated else {  break  }
+        }
+        graph.edges.forEach {
+            let edge = (sourceIndex: index[$0.0] ?? index.count, destinationIndex: index[$0.1] ?? index.count, weight: $0.2)
+            if weights[edge.sourceIndex] > weights[edge.destinationIndex] + Double(edge.weight) { return }
+        }
+        return recursePathTo(vertex: destination)
+    }
+}
+extension ShortestPath {
+    static func recursePathTo(vertex: String) -> [String]? {
+        /// 该节点已经经过松弛计算
+        guard weights[index[vertex] ?? index.count] != Double.infinity else { return nil }
+        /// parentIndex记录的是松弛的前驱节点 递归到 a source节点 已经初始化为index[sorce]
+        guard let parentIndex = parentIndex[index[vertex]!] else { return nil }
+        /// 如果parentIndex(a) -> nil parentVertex = []
+        let parentVertex = self.vertices[parentIndex]!
+        if parentIndex == index[vertex] ?? index.count { return [vertex] }
+        guard let buildPath = recursePathTo(vertex: parentVertex) else { return nil }
+        return buildPath + [vertex]
+    }
+}
+var matrix = AdjacencyMatrix<String, Int>()
+matrix.addEdge("a", destination: "b", weight: 1)
+matrix.addEdge("a", destination: "c", weight: 20)
+matrix.addEdge("b", destination: "c", weight: 3, direction: .unDirected)
+print(matrix)
+print(matrix.getWeight("c", destination: "b")!)
+let result = ShortestPath.relaxion(graph: matrix, source: "a", destination: "c")
+print(result)
+
+// MARK: - Version 4
+enum Direction {
+    case directed
+    case unDirected
+}
+protocol GraphProtocol: CustomDebugStringConvertible {
+    associatedtype Vertex: Hashable
+    typealias Edge = (Vertex, Vertex, Double)
+    var edges: [Edge] { get set }
+    var vertices: [Vertex] { get set }
+}
+extension GraphProtocol {
+    var debugDescription: String {
+        var literals = ""
+        edges.forEach {
+            literals += "\($0.0)-\($0.1): \($0.2)\n"
+        }
+        return literals
+    }
+}
+extension GraphProtocol {
+    mutating func BellmanShortestPath(from source: Vertex, destination: Vertex) -> [Vertex]? {
+        var precusor = [Int?](repeating: nil, count: vertices.count)
+        var weight = [Double](repeating: Double.infinity, count: vertices.count)
+        getVertexIndex(source).map {
+            precusor[$0] = $0
+            weight[$0] = 0
+        }
+        for _ in 1..<vertices.count {
+            var updated = false
+            edges.forEach {
+                guard let edgeIndex = getEdgeIndex($0) else { return }
+                let relaxed = weight[edgeIndex.source] + $0.2
+                if relaxed < weight[edgeIndex.destination] {
+                    weight[edgeIndex.destination] = relaxed
+                    precusor[edgeIndex.destination] = edgeIndex.source
+                    updated = true
+                }
+            }
+            /// 出现负权回路
+            guard updated else { break }
+        }
+        ///检查是否存在负权回路
+        edges.forEach {
+            guard let edgeIndex = getEdgeIndex($0) else { return }
+            guard weight[edgeIndex.source] < weight[edgeIndex.destination] + $0.2 else { return }
+        }
+        return getShorestPath(destination: destination, relaxedWeight: weight, precursor: precusor)
+    }
+}
+extension GraphProtocol {
+    private func getVertexIndex(_ vertex: Vertex) -> Int? {
+        for (index, element) in vertices.enumerated() where element == vertex { return index }
+        return nil
+    }
+    private func getEdgeIndex(_ edge: Edge) -> (source: Int, destination: Int)? {
+        guard let indexA = getVertexIndex(edge.0), let indexB = getVertexIndex(edge.1) else { return nil }
+        return (indexA, indexB)
+    }
+    private func getShorestPath(destination: Vertex, relaxedWeight: [Double], precursor: [Int?] ) -> [Vertex]? {
+        ///判断destination是否已经松弛
+        guard let indexB = getVertexIndex(destination), relaxedWeight[indexB] != Double.infinity else { return nil }
+        ///经过松弛edge的source节点
+        guard let indexA = precursor[indexB] else { return nil }
+        ///如果相等为起始点
+        if indexA == indexB { return [vertices[indexA]] }
+        guard let path = getShorestPath(destination: vertices[indexA], relaxedWeight: relaxedWeight, precursor: precursor) else {return nil}
+        return path + [destination]
+    }
+}
+extension GraphProtocol {
+    mutating func addEdge(_ source: Vertex, destination: Vertex, weight: Double, direction: Direction = .directed) {
+        if !vertices.contains(source) { vertices.append(source) }
+        if !vertices.contains(destination) { vertices.append(destination) }
+        edges.append((source, destination, weight))
+        switch direction {
+        case .directed: return
+        case .unDirected:
+            edges.append((destination, source, weight))
         }
     }
-    var graph = AdjacencyMatrixGraph<String>()
-    let vertexA = graph.createVertex("A")
-    let vertexB = graph.createVertex("B")
-    let vertexC = graph.createVertex("C")
-    ///       2
-    graph.addDirectEdge(lhs: vertexA, rhs: vertexB, weight: 2)  ///   A ----- B
-    graph.addDirectEdge(lhs: vertexB, rhs: vertexC, weight: 1)  ///   |       |  1
-    graph.addDirectEdge(lhs: vertexA, rhs: vertexC, weight: 5)  ///   5------ C
-    
-    let bellManResult = graph.apply(source: vertexA)
-    let vertexArray = bellManResult?.recursePathTo(vertex: vertexC, graph: graph)
-    vertexArray?.forEach { print($0.data) } //A B C
+}
+
+class Graph: GraphProtocol {
+    typealias Vertex = String
+    var edges: [(String, String, Double)]
+    var vertices: [String]
+    init() {
+        edges = [Edge]()
+        vertices = [String]()
+    }
+}
+var graph = Graph()
+graph.addEdge("a", destination: "b", weight: 1)
+graph.addEdge("b", destination: "c", weight: 2)
+graph.addEdge("a", destination: "c", weight: 110)
+let result = graph.BellmanShortestPath(from: "a", destination: "c")
+print(result)
