@@ -134,5 +134,82 @@ path.vertices.insert(vertexA)
 path.vertices.insert(vertexB)
 path.vertices.insert(vertexC)
 path.relaxation(from: vertexA)
-
 print(vertexC.pathFromStart.member)
+
+// MARK: - Version 3
+enum Direction {
+    case directed
+    case unDirected
+}
+protocol GraphProtocol: CustomDebugStringConvertible {
+    associatedtype Vertex: Hashable
+    typealias Edge = (Vertex, Vertex, Double)
+    var edges: [Edge] { get set }
+    var vertices: [Vertex] { get set }
+}
+extension GraphProtocol {
+    var debugDescription: String {
+        var literals = ""
+        edges.forEach {
+            literals += "\($0.0)-\($0.1): \($0.2)\n"
+        }
+        return literals
+    }
+}
+extension GraphProtocol {
+    mutating func addEdge(_ source: Vertex, destination: Vertex, weight: Double, direction: Direction = .directed) {
+        if !vertices.contains(source) { vertices.append(source) }
+        if !vertices.contains(destination) { vertices.append(destination) }
+        edges.append((source, destination, weight))
+        switch direction {
+        case .directed: return
+        case .unDirected:
+            edges.append((destination, source, weight))
+        }
+    }
+}
+extension GraphProtocol {
+    mutating func DikstraShortestPath(from source: Vertex, destination: Vertex) -> (length: Double, member: [Vertex])? {
+        var currentVertex: Vertex? = source
+        var currentVertices = Set.init(vertices)
+        var pathFromStart = [Vertex: (length: Double, member:[Vertex] )]()
+        vertices.forEach { pathFromStart[$0] = (Double.infinity, []) }
+        pathFromStart[source]?.length = 0
+        pathFromStart[source]?.member = [source]
+        while let vertex = currentVertex {
+            currentVertices.remove(vertex)
+            for edge in (edges.filter { $0.0 == vertex }) where currentVertices.contains(edge.1) {
+                guard let source = pathFromStart[edge.0], var destination = pathFromStart[edge.1] else { return nil }
+                let relaxed = source.length + edge.2
+                if relaxed < destination.length {
+                    destination.length = relaxed
+                    destination.member = source.member
+                    destination.member.append(edge.1)
+                    pathFromStart[edge.1] = destination
+                }
+            }
+            guard !currentVertices.isEmpty else {
+                currentVertex = nil
+                break
+            }
+            /// a b c  remove a   b.length = 1 c.length = infiniti
+            currentVertex = currentVertices.min { pathFromStart[$0]!.length < pathFromStart[$1]!.length }
+        }
+        return pathFromStart[destination]
+    }
+}
+struct Grap: GraphProtocol {
+    typealias Vertex = String
+    var edges: [(String, String, Double)]
+    var vertices: [String]
+    init() {
+        edges = [Edge]()
+        vertices = [String]()
+    }
+}
+var graph = Grap()
+graph.addEdge("a", destination: "b", weight: 3)
+graph.addEdge("b", destination: "c", weight: 2)
+graph.addEdge("a", destination: "c", weight: 1)
+let result = graph.DikstraShortestPath(from: "a", destination: "c")
+print(result)
