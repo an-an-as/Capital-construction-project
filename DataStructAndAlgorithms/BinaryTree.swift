@@ -15,7 +15,6 @@
  
  ````
  */
-
 public indirect enum BinaryTree<T> {
     case empty
     case node(BinaryTree<T>, T, BinaryTree<T>)
@@ -72,8 +71,6 @@ extension BinaryTree {
         }
     }
 }
-
-
 // leaf nodes
 let node5 = BinaryTree.node(.empty, "5", .empty)
 let nodeA = BinaryTree.node(.empty, "a", .empty)
@@ -81,28 +78,76 @@ let node10 = BinaryTree.node(.empty, "10", .empty)
 let node4 = BinaryTree.node(.empty, "4", .empty)
 let node3 = BinaryTree.node(.empty, "3", .empty)
 let nodeB = BinaryTree.node(.empty, "b", .empty)
-
 // intermediate nodes on the left
 let aMinus10 = BinaryTree.node(nodeA, "-", node10)
 let timesLeft = BinaryTree.node(node5, "*", aMinus10)
-
 // intermediate nodes on the right
 let minus4 = BinaryTree.node(.empty, "-", node4)
 let divide3andB = BinaryTree.node(node3, "/", nodeB)
 let timesRight = BinaryTree.node(minus4, "*", divide3andB)
-
 // root node
 let tree = BinaryTree.node(timesLeft, "+", timesRight)
 
-
-
-
-
-
-
-
-
-
-
-
-
+// MARK: -  Version: 2
+struct Queue<Element> {
+    var storage = [Element?]()
+    var head = 0
+}
+extension Queue {
+    mutating func enqueue(_ newElement: Element) {
+        storage.append(newElement)
+    }
+    mutating func dequeue() -> Element? {
+        guard head < storage.count, let first = storage[head] else { return nil }
+        storage[head] = nil
+        head += 1
+        if storage.count > 50 && (Double(head) / Double(storage.count) > 0.25) {
+            storage.removeFirst(head)
+            head = 0
+        }
+        return first
+    }
+}
+indirect enum BinaryTree<Element> {
+    case empty
+    case node(BinaryTree, Element, BinaryTree)
+}
+extension BinaryTree {
+    var count: Int {
+        switch self {
+        case .empty: return 0
+        case let .node(left, _, right):
+            return left.count + 1 + right.count
+        }
+    }
+}
+extension BinaryTree: CustomDebugStringConvertible {
+    var debugDescription: String {
+        var literal = ""
+        var queue = Queue<BinaryTree>()
+        queue.enqueue(self)
+        while let tree = queue.dequeue() {
+            if case let .node(left, value, right) = tree {
+                queue.enqueue(left)
+                queue.enqueue(right)
+                literal += "\(value) "
+            }
+        }
+        return literal
+    }
+}
+extension BinaryTree {
+    func traversePreOrder(_ process: (Element) -> Void) {
+        if case let .node(left, value, right) = self {
+            process(value)
+            left.traversePreOrder(process)
+            right.traversePreOrder(process)
+        }
+    }
+}
+let nodeC = BinaryTree.node(.empty, 3, .empty)
+let nodeB = BinaryTree.node(.empty, 2, .empty)
+let nodeA = BinaryTree.node(nodeC, 1, .empty)
+let node = BinaryTree.node(nodeA, 0, nodeB)
+print(node)
+print(node.traversePreOrder(){ print($0) })
