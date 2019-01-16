@@ -151,3 +151,74 @@ let nodeA = BinaryTree.node(nodeC, 1, .empty)
 let node = BinaryTree.node(nodeA, 0, nodeB)
 print(node)
 print(node.traversePreOrder(){ print($0) })
+
+// MARK: - Version 3
+enum TraversalOrder {
+    case preorder
+    case postorder
+    case inorder
+    case breadth
+}
+indirect enum BinaryTree<Element> {
+    case empty
+    case node(BinaryTree, Element, BinaryTree)
+}
+extension BinaryTree {
+    var count: Int {
+        return reduce(0) { $0 + 1 + $2 }
+    }
+    var height: Int {
+        return reduce(0) { 1 + max($0, $2) }
+    }
+    var elemet: [Element] {
+        return reduce([]) { $0 + [$1] + $2 }
+    }
+}
+extension BinaryTree {
+    func reduce<T>(_ initial: T, _ handle: @escaping(T, Element, T) -> T) -> T {
+        switch self {
+        case .empty: return initial
+        case let .node(left, value, right):
+            return handle(left.reduce(initial, handle), value, right.reduce(initial, handle))
+        }
+    }
+}
+extension BinaryTree {
+    func traversal(order: TraversalOrder = .breadth) -> [Element] {
+        switch order {
+        case .preorder: return reduce([]) { [$1] +  $0 + $2 }
+        case .inorder: return reduce([]) { $0 + [$1] + $2 }
+        case .postorder: return reduce([]) { $0 + $2 + [$1] }
+        case .breadth:
+            var queue = Queue<BinaryTree>()
+            queue.enqueue(self)
+            var temp = [Element]()
+            while let tree = queue.dequeue() {
+                if case let .node(left, value, right) = tree {
+                    queue.enqueue(left)
+                    queue.enqueue(right)
+                    temp.append(value)
+                }
+            }
+            return temp
+        }
+    }
+}
+let nodeE = BinaryTree.node(.empty, 5, .empty)
+let nodeD = BinaryTree.node(.empty, 4, nodeE)
+let nodeC = BinaryTree.node(nodeD, 3, .empty)
+let nodeB = BinaryTree.node(.empty, 2, .empty)
+let nodeA = BinaryTree.node(nodeC, 1, .empty)
+let node = BinaryTree.node(nodeA, 0, nodeB)
+print(node.traversal(order: .preorder))
+print(node.traversal(order: .inorder))
+print(node.traversal(order: .postorder))
+print(node.traversal(order: .breadth))
+///                 node 0
+///           nodeA 1   nodeB 2
+///      nodeC 3
+/// nodeD 4  nodeE 5
+_ = [0, 1, 3, 4, 5, 2]
+_ = [4, 5, 3, 1, 0, 2]
+_ = [5, 4, 3, 1, 2, 0]
+_ = [0, 1, 2, 3, 4, 5]
