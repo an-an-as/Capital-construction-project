@@ -127,3 +127,133 @@ extension BinarySearchTree: CustomStringConvertible {
 }
 var tree: BinarySearchTree<Int> = [1, 2, 3, 4, 5]
 tree.forEach { print($0) }
+// MARK: -  Version 2
+enum TraversalOrder {
+    case preorder
+    case postorder
+    case inorder
+    case breadth
+}
+struct Queue<Element> {
+    var storage = [Element?]()
+    var head = 0
+}
+extension Queue {
+    mutating func enqueue(_ newElement: Element) {
+        storage.append(newElement)
+    }
+    mutating func dequeue() -> Element? {
+        guard head < storage.count, let first = storage[head] else { return nil }
+        storage[head] = nil
+        head += 1
+        if storage.count > 50 && (Double(head) / Double(storage.count) > 0.25) {
+            storage.removeFirst(head)
+            head = 0
+        }
+        return first
+    }
+}
+indirect enum BinarySearchTree<Element: Comparable> {
+    case empty
+    case node(BinarySearchTree, Element, BinarySearchTree)
+}
+extension BinarySearchTree {
+    init() {
+        self = .empty
+    }
+    init(value: Element) {
+        self  = .node(.empty, value, .empty)
+    }
+}
+extension BinarySearchTree {
+    var count: Int {
+        return reduce(0) { $0 + 1 + $2 }
+    }
+    var height: Int {
+        return reduce(0) { 1 + max($0, $2) }
+    }
+    var elemet: [Element] {
+        return reduce([]) { $0 + [$1] + $2 }
+    }
+}
+extension BinarySearchTree {
+    func reduce<T>(_ initial: T, _ handle: @escaping(T, Element, T) -> T) -> T {
+        switch self {
+        case .empty: return initial
+        case let .node(left, value, right):
+            return handle(left.reduce(initial, handle), value, right.reduce(initial, handle))
+        }
+    }
+}
+extension BinarySearchTree {
+    func traversal(order: TraversalOrder = .breadth) -> [Element] {
+        switch order {
+        case .preorder: return reduce([]) { [$1] +  $0 + $2 }
+        case .inorder: return reduce([]) { $0 + [$1] + $2 }
+        case .postorder: return reduce([]) { $0 + $2 + [$1] }
+        case .breadth:
+            var queue = Queue<BinarySearchTree>()
+            queue.enqueue(self)
+            var temp = [Element]()
+            while let tree = queue.dequeue() {
+                if case let .node(left, value, right) = tree {
+                    queue.enqueue(left)
+                    queue.enqueue(right)
+                    temp.append(value)
+                }
+            }
+            return temp
+        }
+    }
+}
+extension BinarySearchTree {
+    mutating func insert(_ newElement: Element) {
+        switch self {
+        case .empty: self = BinarySearchTree(value: newElement)
+        case .node(var left, let value, var right):
+            if newElement < value { left.insert(newElement) }
+            if newElement > value { right.insert(newElement)}
+            self = .node(left, value, right)
+        }
+    }
+}
+extension BinarySearchTree {
+    mutating func contains(_ target: Element) -> Bool {
+        switch self {
+        case .empty: return false
+        case .node(_, let value, _) where target ==  value: return true
+        case .node(var left, let value, _) where target < value:
+            return left.contains(target)
+        case .node(_, let value, var right) where target > value:
+            return right.contains(target)
+        default: return false
+        }
+    }
+}
+let nodeE = BinarySearchTree.node(.empty, 5, .empty)
+let nodeD = BinarySearchTree.node(.empty, 4, .empty)
+let nodeC = BinarySearchTree.node(nodeD, 3, nodeE)
+let nodeB = BinarySearchTree.node(.empty, 2, .empty)
+let nodeA = BinarySearchTree.node(nodeC, 1, .empty)
+var node = BinarySearchTree.node(nodeA, 0, nodeB)
+print(node.traversal(order: .preorder))
+print(node.traversal(order: .inorder))
+print(node.traversal(order: .postorder))
+print(node.traversal(order: .breadth))
+///                 node 0
+///           nodeA 1   nodeB 2
+///      nodeC 3
+/// nodeD 4  nodeE 5
+_ = [0, 1, 3, 4, 5, 2]
+_ = [4, 5, 3, 1, 0, 2]
+_ = [5, 4, 3, 1, 2, 0]
+_ = [0, 1, 2, 3, 4, 5]
+
+node.insert(6)
+node.insert(7)
+print(node.traversal(order: .breadth))
+
+///                 node 0
+///           nodeA 1   nodeB 2
+///      nodeC 3                6
+/// nodeD 4  nodeE 5              7
