@@ -128,73 +128,93 @@ let trieOfWords = Trie<Character>.build(words: contents)                /// [ [r
  + 配置Trie reduceTrie 在原有的基础上依次插入传入的字符串的slice
  
  */
-
 extension Array {
     var slice: ArraySlice<Element> {
         return ArraySlice(self)
     }
 }
 extension ArraySlice {
-    var decomposed: (Element, ArraySlice)? {
+    var decomposed: (Element, ArraySlice<Element>)? {
         return isEmpty ? nil : (self[startIndex], self.dropFirst())
     }
 }
-public struct Trie <Element: Hashable> {
-    private var isElement: Bool
-    private var children: [Element: Trie<Element>]
+struct Trie<Element: Hashable> {
+    var isEnd: Bool
+    var children: [Element: Trie]
 }
 extension Trie {
-    public init(_ arraySlice: ArraySlice<Element>) {
-        if let (head, remained) = arraySlice.decomposed {
-            let children = [head: Trie(remained)]
-            self = Trie(isElement: false, children: children)
+    init() {
+        self.isEnd = false
+        children = [Element: Trie]()
+    }
+    /// 首尾分离递归创建
+    /// ```
+    /// slice: a, b, c
+    /// Trie children -> [a: [b: [c: []]]]
+    /// Trie.children[a].children[b].children[c] = []
+    /// ```
+    init(slice: ArraySlice<Element>) {
+        if let (head, remain) = slice.decomposed  {
+            self = Trie(isEnd: false, children: [head: Trie(slice: remain)])
         } else {
-            self = Trie(isElement: true, children: [:])
+            self = Trie(isEnd: true, children: [:])
         }
     }
 }
 extension Trie {
-    private func insert(_ arraySlice: ArraySlice<Element>) -> Trie {
-        guard let (head, remian) = arraySlice.decomposed else {
-            return Trie(isElement: true, children: children)
-        }
-        var currnetChildren = children
-        if let getCurrentTrie = currnetChildren[head] {
-            currnetChildren[head] = getCurrentTrie.insert(remian)
-        } else {
-            currnetChildren[head] = Trie.init(remian)
-        }
-        return Trie.init(isElement: isElement, children: currnetChildren)
-    }
-    static public func configTrie(with words: [String]) -> Trie<Character> {
-        return words.reduce(Trie<Character>(isElement: false, children: [:])) {
-            $0.insert(Array($1).slice)
-        }
-    }
-}
-extension Trie {
-    private func lookUp(with arraySlice: ArraySlice<Element>) -> Trie<Element>? {
-        guard let (head, remained) = arraySlice.decomposed else { return self }
-        guard let nextTrie = children[head] else { return nil }
-        return nextTrie.lookUp(with: remained)
-    }
-    private func elementsInTrie() -> [[Element]] {
-        var result: [[Element]] = isElement ? [[]] : []
-        for (element, trie) in children {
-            result += trie.elementsInTrie().map { [element] + $0 }
-        }
+    /// 1. isEnd的变化: 初始化的时候为false 递归创建至最后为true elements返回 [[]]
+    /// 2. [[]].map 返回 result = [] + [[b]],  遍历到另外一个[[c]]  result += [[b],[c]]
+    /// 3. 递归回溯后 [[b],[c]].map { [a] + $0 } 完成拼接
+    /// ```
+    /// Trie children -> [ a: {b:[], c:[]} ]
+    /// [] + [[]].map { [b] + [] } -> [[b]] + [[c]]  -> return [[b],[c]]
+    /// [] + [[b],[c]].map { [a] + [b],  [a] + [b] } -> [[ab], [ac]]
+    /// ```
+    var elements: [[Element]] {
+        var result: [[Element]] = isEnd ? [[]] : []
+        for (key, trie) in children { result += trie.elements.map { [key] + $0 } }
         return result
     }
-    public func checkOut(_ wordSlice: ArraySlice<Element>) -> [[Element]] {
-        return lookUp(with: wordSlice)?.elementsInTrie() ?? []
+}
+extension Trie {
+    /// 1. 判断字典树中是否已经存在需要插入的值
+    /// 2. 递归创建
+    /// ```
+    /// case1  [a: b:[]] insert ab   a == a 递归 b == b return   Trie a (false, b: [])
+    /// case2  [a: b:[]] insert abc  a == a b == b递归 newChildren[a] = newChildren[c] = Trie(slice: c) 后续递归创建
+    func inserting(slice: ArraySlice<Element>) -> Trie {
+        guard let (head, remain) = slice.decomposed else { return Trie(isEnd: false, children: children) }
+        var newChildren = children
+        if let nextTrie = children[head] {
+            newChildren[head] = nextTrie.inserting(slice: remain)
+        } else {
+            newChildren[head] = Trie(slice: remain)
+        }
+        return Trie(isEnd: isEnd, children: newChildren)
+    }
+    /// 通过reduce遍历插入执行inserting
+    static func build(words: [String]) -> Trie<Character> {
+        return words.reduce(Trie<Character>()) { trie, word in
+            trie.inserting(slice: Array(word).slice)
+        }
+    }
+}
+extension Trie {
+    /// 递归检查元素是否在树中 如果递归到最后不存在返回nil 存在
+    func check(_ slice: ArraySlice<Element>) -> Trie? {
+        guard let (head, remain) = slice.decomposed else { return self }
+        guard let trie = children[head] else { return nil }
+        return trie.check(remain)
     }
 }
 extension String {
-    public func fuzzyQuery(in storage: Trie<Character>) -> [String] {
-        let characters = Array(self).slice
-        return storage.checkOut(characters).map { self + String($0) }
+    func fuzzySearching(in trie: Trie<Character>) -> [String] {
+        let slice = Array(self).slice
+        let elements = trie.check(slice)?.elements ?? []
+        return elements.map { self + String($0) }
     }
 }
-let trie = Trie<Character>.configTrie(with: ["cat", "car", "cart", "dog"])
-let result = "car".fuzzyQuery(in: trie)
-print(result) // ["car", "cart"]
+let contents = ["cat", "car", "cart", "dog"]
+let trie = Trie<Character>.build(words: contents)
+let result = "c".fuzzySearching(in: trie)
+print(result)
