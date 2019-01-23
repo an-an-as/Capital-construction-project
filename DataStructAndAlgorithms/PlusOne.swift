@@ -2,13 +2,10 @@
 /// / 10 未达到10的返回0
 extension Array where Element == Int {
     mutating func plusOne() {
-        if isEmpty { return }
-        var plusOne = 1
-        for index in indices.reversed(){
-            let sum = self[index] + plusOne
+        for index in indices.reversed() {
+            let sum = self[index] + 1
             self[index] = sum % 10
-            plusOne = sum / 10
-            if plusOne == 0 { return }
+            if sum / 10 == 0 { return }
         }
         insert(1, at: startIndex)
     }
