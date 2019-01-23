@@ -2,17 +2,17 @@
 /// 2. module之后的数会逐渐递增
 /// 3. 前后的数都限制在module内
 extension Array {
-    mutating func ratate(step: Index) {
+    mutating func rotate(offset step: Int) {
         let remainder = step.quotientAndRemainder(dividingBy: count).remainder
         if isEmpty || remainder == 0 { return }
         for (index, element) in enumerated() {
-            self[(index + remainder) % count] = element
+            self[ (index + remainder) % count ] = element
         }
     }
 }
 var integers = (1...5).map { _ in Int.random(in: 1...10) }
 print(integers)
-integers.ratate(step: 2)
+integers.rotate(step: 2)
 print(integers)
 /**
  [1, 2, 3, 4, 5]
