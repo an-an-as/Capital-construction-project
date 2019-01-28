@@ -69,3 +69,25 @@ func flipAndInvertImage2(_ A: [[Int]]) -> [[Int]] {
         $0.reversed().map { 1 - $0 }
     }
 }
+
+//转置矩阵
+//矩阵的转置是指将矩阵的主对角线翻转，交换矩阵的行索引与列索引
+///向左下角翻转
+[1,2,3]
+[4,5,6]
+[7,8,9]
+
+[1,4,7]
+[2,5,8]
+[3,6,9]
+func transpose(_ A: [[Int]]) -> [[Int]] {
+    var matrix = [[Int]](repeating: [], count: A[0].count) // [ [],[],[],[]  ]
+    for index in A[0].indices {
+        for cursor in A.indices {
+            matrix[index].append(A[cursor][index])
+        }
+    }
+    return matrix
+}
+let result = transpose2([[1,2,3],[4,5,6],[7,8,9]])
+print(result)
