@@ -1,5 +1,5 @@
-/// 反转字符串
 extension String {
+    ///反转字符串
     func reverseString() -> String {
         var characters = Array(self)
         var startIndex = 0
@@ -13,5 +13,16 @@ extension String {
         }
         return String(characters)
     }
+    ///反转每个单词
+    func reverseWords() -> String {
+        let stringArray = split(separator: " ")
+        var result = [String]()
+        stringArray.forEach {
+            let reversed = String($0).reverseString()
+            result.append(reversed)
+        }
+        return result.joined(separator: " ")
+    }
 }
-print( "hello world".reverseString() )
+let result = "Let's take LeetCode contest".reverseWords()
+print(result)
