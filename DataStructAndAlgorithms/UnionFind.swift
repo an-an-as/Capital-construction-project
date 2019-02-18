@@ -56,3 +56,46 @@ public struct UnionFindQuickFind<T: Hashable> {
         }
     }
 }
+
+// MARK: - VERSION 2
+struct UnionFind<Element: Hashable> {
+    var index = [Element: Int]()
+    var next = [Int]()
+    var size = [Int]()
+}
+extension UnionFind {
+    mutating func initial(_ element: Element) {
+        index[element] = next.count
+        next.append(next.count)
+        size.append(1)
+    }
+}
+extension UnionFind {
+    mutating func union(source: Element, destination: Element) {
+        guard source != destination, let sourceIndex = index[source], let destinationIndex = index[destination] else { return }
+        if size[sourceIndex] > size[destinationIndex] {
+            next[sourceIndex] = next[destinationIndex]
+            size[destinationIndex] += size[sourceIndex]
+        } else {
+            next[destinationIndex] = next[sourceIndex]
+            size[sourceIndex] += size[destinationIndex]
+        }
+    }
+    mutating func searchIndex(_ element: Element) -> Int? {
+        guard let sourceIndex = index[element] else { return nil }
+        func recurse(_ index: Int) -> Int {
+            if next[index] == index { return index }
+            next[index] = recurse(next[index])
+            return next[index]
+        }
+        return recurse(sourceIndex)
+    }
+    mutating func hasSameIndex(_ lhs: Element, _ rhs: Element) -> Bool {
+        return searchIndex(lhs) == searchIndex(rhs)
+    }
+}
+var union = UnionFind<String>()
+union.initial("a")
+union.initial("b")
+union.union(source: "a", destination: "b")
+print(union.hasSameIndex("a", "b"))
