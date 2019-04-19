@@ -124,3 +124,127 @@ print(evaluate(product))
 /// 打印 "18"
 
 
+
+enum CarBrand {
+    case  BMW
+    case  AUDI
+    case  BENZ
+}
+let myBrand = CarBrand.BMW
+if case .BMW = myBrand {
+    print("宝马")
+}
+enum CarBrand {
+    case  BMW(name:String,Production:String)
+    case  AUDI(name:String,Production:String)
+    case  BENZ(name:String,Production:String)
+}
+let myCar = CarBrand.BMW(name: "宝马",Production: "德国")
+switch myCar {
+case let CarBrand.BMW(name,Production):
+    print("This car named \(name)，from\(Production)")
+default: () // 不做任何处理
+}
+let myBrand = CarBrand.BMW(name: "宝马",Production: "德国")
+if case let CarBrand.BMW(name, Production) = myBrand{
+    print("\(name),\(Production)")
+}
+enum CarBrand {
+    case  BMW
+    case  AUDI
+    case  BENZ
+}
+let myBrand = CarBrand.BMW
+if case .BMW = myBrand {
+    print("宝马")
+}
+enum CarBrand {
+    case  BMW(name:String,Production:String)
+    case  AUDI(name:String,Production:String)
+    case  BENZ(name:String,Production:String)
+}
+let myCar = CarBrand.BMW(name: "宝马",Production: "德国")
+switch myCar {
+case let CarBrand.BMW(name,Production):
+    print("This car named \(name)，from\(Production)")
+default: () // 不做任何处理
+}
+let myBrand = CarBrand.BMW(name: "宝马",Production: "德国")
+if case let CarBrand.BMW(name, Production) = myBrand{
+    print("\(name),\(Production)")
+}
+
+// swift中提供了associatedtype关键字来支持泛型
+import Foundation
+/// 实现该协议的类需要有Sc和ClassEnumation类型、他们都有各自的继承
+protocol FindStudentProtocol {
+    associatedtype ClassEnumation: RawRepresentable
+    associatedtype Sc: School
+}
+/// 该协议继承子School在该协议内使用了School的方法 同事继承子该协议的类型需要继承School
+/// 遵循RawRepresentable 使用rawValue的初始化方法,rawValue返回一个值 和枚举进行匹配 通过RawRepresentable可以利用编译器使得String更加Distinct
+/// 限制条件RawRepresentable.RawValue 类型是String 关联到具体的类型内的枚举值必须是String
+extension FindStudentProtocol where Self: School, ClassEnumation.RawValue == String {
+    func findClass(_ className: String) -> ClassEnumation {
+        guard let myClass = ClassEnumation(rawValue: "-Chemical-\(className)-") else { fatalError("class error") }
+        return myClass
+    }
+    func schoolName() -> String {
+        return schoolName()
+    }
+}
+class School {
+    let name = "MIT"
+    func schoolName() -> String {
+        return name
+    }
+}
+class Student: School, FindStudentProtocol {
+    typealias Sc = MySchool             /// 名字不一致
+    class MySchool: School {}           /// 名字一致就不要typealias
+    enum ClassEnumation: String {       /// 枚举继承了RawRepresentable
+        case classA = "-Chemical-A-"
+        case classB = "-Physics-B-"
+    }
+    func identifier(_ selectedClass: String ) {
+        switch findClass(selectedClass) {
+        case .classA:
+            print(schoolName() + ClassEnumation.classA.rawValue)
+        case .classB:
+            print(schoolName() + ClassEnumation.classB.rawValue)
+        }
+    }
+}
+let student = Student()
+student.identifier("A")
+
+enum Demo {
+    case demo
+}
+enum Demo2: Int {
+    case num = 1
+}
+
+let test = Demo.demo
+switch test {
+case .demo:
+    print("ok")
+}
+if case .demo = test { print("ok") }
+
+if let test2 = Demo2(rawValue: 2) {
+    switch test2 {
+    case .num:
+        print("ok")
+    }
+} else {
+    print("不存在")
+}
+
+enum Segue: String {
+    case detail = "VC1"
+}
+let detail = Segue(rawValue: "VC1")!
+if case .detail = detail {
+    print("匹配成功")
+}
